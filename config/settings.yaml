@@ -1,0 +1,204 @@
+# 默认是一对一陪同模式；房间号只在 sources.bilibili_enabled=true 时使用
+room_id: 0
+
+# 原有直播和模拟输入均保留为显式开关，默认不会自行产生事件
+sources:
+  bilibili_enabled: false            # 仅接收直播间弹幕；B站视频点歌不需要开启
+  mock_danmaku_enabled: false        # 模拟弹幕；网页“扩展功能”里也可随时开关
+  mock_game_enabled: false           # 模拟游戏过程；网页“扩展功能”里也可随时开关
+
+llm:
+  base_url: https://api.deepseek.com
+  api_key_env: DEEPSEEK_API_KEY   # 从环境变量读 key, 不写死在配置里
+  model: deepseek-flash
+  max_tokens: 320                   # 总上限；闲聊、简短回答按场景自动降低，解释最多4段
+  temperature: null               # 非思考模式使用服务端默认采样参数
+  reasoning_effort: null          # 非思考模式不发送推理强度
+  thinking: false                 # 直播默认关闭思考，避免先生成隐藏推理导致首字延迟
+  first_clause_chars: 0            # 保留完整句内的转折和重音；设24可恢复优先首句延迟
+
+# 主人格继承上面的 DeepSeek Flash（当前官方 API 对应 V4.1-Flash-1017）。
+# 下方 Gemini 专用参数保留供切换使用，inherit 模式下不启用；密钥不放在本文件。
+persona_llm:
+  backend: inherit
+  api_key_env: GEMINI_API_KEY
+  max_tokens: 4096  # 包括模型思考预算；实际口播仍遵循原有句数限制
+  command: data/argon-runtime/bin/agy.exe
+  model: gemini-4-argon
+  effort: low
+  timeout_sec: 45
+  runtime_dir: data/argon-runtime/turns
+
+agent_tasks:
+  enabled: true
+  omp_command: data/agent-runtime/omp.exe
+  codex_command: codex
+  max_queue: 8
+  timeout_sec: 900
+
+tts:
+  backend: "mock"                 # mock | gpt_sovits | indextts2 | fish_speech
+  gpt_sovits_url: http://127.0.0.1:9880
+  indextts2_url: http://127.0.0.1:9890
+  fish_speech_url: http://127.0.0.1:8081  # 独立 Fish Speech 官方 API 服务；不要占用主控 8080
+  fish_speech_reference_id: ""       # 服务端已保存的音色 ID，优先于下面的参考文件
+  fish_speech_ref_audio_path: "GPT-SoVITS/references/reference.wav"     # 本机音频路径，不复用 IndexTTS2 的音色/转写
+  fish_speech_prompt_text: ""        # 上述音频的逐字转写；与参考文件成对填写
+  fish_speech_api_key_env: FISH_SPEECH_API_KEY  # 仅在独立服务要求鉴权时设置环境变量
+  fish_speech_timeout_sec: 240
+  fish_speech_emotion_tags: true     # 将角色的情绪映射为 Fish 的语气标签
+  fish_speech_natural_delivery: true # 日常语调、问句/重点起伏，续句保留情绪；false恢复基础标签
+  fish_speech_breathing: true        # 同一轮较长回复在自然分句处轻换气，短回复不添加
+  indextts2_emo_alpha: 0.60          # 参考音频的情绪强度
+  indextts2_num_beams: 1             # 直播低延迟用1；提高到3会更慢但候选搜索更充分
+  trim_edge_silence: true            # 压缩首尾过长静音；轻声被截时可关闭
+  indextts2_reference_style: true    # 以参考表现为主；自然模式仅混合少量明确情绪
+  indextts2_natural_delivery: true   # 同轮参考连续、轻情绪混合，保留模型已有轻起音
+  indextts2_delivery_preset: expressive # 日常聊天、认真解释用 B；reference 全部恢复 A
+  indextts2_expressive_teasing: false # 轻吐槽选 A；true 可单独恢复 B 的吐槽增强
+  indextts2_ref_audio_path: "V:/GPT-SoVITS/references/reference.wav"
+  indextts2_short_ref_audio_path: "V:/GPT-SoVITS/references/reference-short.wav"
+  indextts2_long_min_chars: 28       # 每个合成段按文字数选择，标点与空格不计
+  indextts2_long_num_beams: 3        # 长句：完整参考＋三束；短句：后段参考＋单束
+  out_dir: data/audio
+  audio_retention_enabled: true
+  audio_retention_days: 7              # 临时语音保留天数；收藏、参考、播放中和排队语音受保护
+  audio_retention_max_mib: 1024        # 超过容量时优先清理最旧的未保护语音
+  audio_retention_interval_sec: 300
+  ref_audio_path: "V:/GPT-SoVITS/references/reference.wav"   # 3~10秒干净人声；V: 由 tools/launcher/start-indextts2.ps1 映射
+  prompt_text: ""                 # 参考音频逐字文本
+  prompt_lang: zh
+
+playback:
+  max_queue: 3                    # 除当前语音外最多等待几条
+  max_age_sec: 75                 # 事件超过多久就不再播，避免回答过时
+  start_timeout_sec: 20           # 浏览器迟迟不开始播放时自动释放
+  max_play_sec: 180               # 单条语音播放看门狗
+  interrupt_priority: 80          # 礼物及以上优先级可中断普通语音
+
+broadcast:
+  wait_notice_sec: 8              # 等待过久时在画面提示
+  reply_timeout_sec: 45           # 一轮回复生成总时限
+  synthesis_timeout_sec: 60       # 资源等待与单段语音合成总时限
+  failure_limit: 3                # 同阶段连续失败后暂缓自动接话
+  cooldown_sec: 30                # 冷却结束后允许新的回复重试
+
+game_agent:
+  enabled: false                  # 当前主打情感陪伴，游戏视觉代理暂不启用
+  observe_only: true              # 默认只观察；改为false后仍需在网页手动开启控制
+  window_title: ""                # 目标游戏窗口标题的一部分，空值时拒绝捕获/控制
+  profile_path: config/games/generic_wasd.yaml
+  capture_fps: 2                  # 每秒分析画面次数
+  decision_interval_sec: 1.0      # 最快多久做一次决策
+  event_interval_sec: 12          # 游戏状态事件进入直播队列的最小间隔
+  max_actions_per_minute: 30      # 输入动作频率硬上限
+  allowed_keys: [w, a, s, d, space, e, enter, esc]
+  allow_mouse: false              # 鼠标控制默认禁用
+  allow_gamepad: false            # 需额外安装 vgamepad，默认禁用
+  emergency_stop_key: f12         # 全局急停键；触发后必须在网页手动复位
+  require_foreground: true        # 目标游戏不在前台时绝不发送输入
+  ocr_enabled: true
+  ocr_language: chi_sim+eng
+  tesseract_cmd: ""               # 可填写 tesseract.exe 绝对路径
+  jpeg_quality: 72
+
+arbiter:
+  danmaku_cooldown_sec: 8         # 普通发言最小间隔
+  idle_comment_sec: 45            # 冷场多久后主动找话
+  max_pending: 200                # 突发流量下最多保留多少个待处理事件
+  normal_max_age_sec: 90          # 为多观众轮流回复留出等待时间
+  aggregate_limit: 5              # 一轮回复最多顺带理解几条相邻弹幕
+
+director:
+  enabled: false                  # 主动开场/找话默认关闭；直播时改为 true
+  opening_delay_sec: 2            # 开播后多久主动开场；有弹幕时会优先接弹幕
+  opening_turns: 3                # 开场回应几轮后进入日常闲聊
+  proactive_interval_sec: 35      # 无人发言多久后由导演主动安排内容
+  interaction_every_turns: 6      # 每隔多少轮主动组织一次全场互动
+  interaction_turns: 2            # 全场互动阶段持续的回复轮数
+  interaction_min_viewers: 2      # 至少多少名近期观众才组织全场互动
+  interaction_response_timeout_sec: 28 # 互动问题多久没人接就自然转场
+  interaction_audio_start_fallback_sec: 12 # 浏览器无播放回执时的保守兜底
+  engagement_window_sec: 90       # 用于判断弹幕速度和近期参与人数的窗口
+  high_chat_rate_per_min: 6       # 每分钟达到多少条弹幕视为高活跃
+  highlight_turns: 2              # 礼物、失败、成就等高能阶段持续轮数
+  topic_max_turns: 6              # 同一话题最多连续延展轮数
+  active_viewer_window_sec: 900   # 多久内发言的观众算当前活跃观众
+  closing_after_minutes: 0        # 0=不自动收播；可在测试台手动切到收尾
+  topic_seeds:                    # 没有可延续话题时轮换使用，不会连续重复
+    - 今天最想分享的一件小事
+    - 最近让自己放松下来的一个瞬间
+    - 此刻的心情如果是一种天气
+    - 最近完成的一件值得肯定自己的事
+    - 明天最希望得到哪一种支持
+
+memory:
+  path: data/memory.jsonl
+  viewer_db: data/viewers.json
+
+selective_memory:
+  enabled: true                       # 只保存未来互动确有价值的自传式记忆
+  state_path: data/autobiographical_memory.json
+  core_memories_path: config/core_memories.yaml # 只有这里和人工API能创建不可遗忘核心记忆
+  max_entries: 1200                   # 核心记忆不参与自动裁剪
+  recall_limit: 4                     # 每轮最多注入几条长期记忆
+  minimum_salience: 0.45              # 写入重要度门槛
+  minimum_confidence: 0.55            # 写入置信度门槛
+  minimum_recall_score: 0.42          # 召回综合评分门槛
+  episode_retention_days: 45          # 普通共同经历的默认保留时间
+  temporal_graph: true                # 每条长期记忆都锚定到全局时间主干
+  associative_hops: 2                # 概念图最多扩散几跳，防止无限联想
+  associative_decay: 0.72            # 每经过一条语义边的激活衰减
+  minimum_association_score: 0.30     # 弱联想进入候选集的最低激活值
+  associative_recall_limit: 1        # 每轮最多注入一条非直接相关的联想
+  timeline_context_window: 3         # 同一观众/支线向前考虑几个时间节点
+  llm_extraction: true                # 仅对可能值得记忆的复杂发言后台抽取
+  extraction_max_tokens: 260
+  semantic_recall: true            # 本地同义概念召回；保留原事实、归属与有效期
+  context_timeout_sec: 0.75        # 各记忆源并行读取，超时保留其他已成功的上下文
+
+learning:
+  enabled: true                    # 本地自主学习闭环总开关
+  state_path: data/learning.json   # 画像、经验、反馈和策略统计
+  max_episodes: 500                # 最多保留多少条可检索互动经验
+  feedback_window_sec: 90          # 回复后观察后续互动的反馈窗口
+  consolidation_interval: 20      # 每多少次回复固化一次策略/自我叙事
+
+personality_evolution:
+  enabled: true                    # 经历只改变可塑人格，不改核心身份与安全规则
+  state_path: data/personality_evolution.json
+  profile: generic-v1
+  consolidation_interval: 20      # 累积多少次有效回复后固化一次长期人格
+  max_evidence: 1000              # 最多保留多少条人格变化证据
+  max_snapshots: 200              # 最多保留多少个人格时间轴快照
+  max_relationships: 300          # 每位用户关系状态相互隔离
+  global_learning_rate: 0.012     # 全局人格变化很慢
+  relationship_learning_rate: 0.04 # 与具体用户的熟悉度变化更快
+  max_global_delta_per_consolidation: 0.025 # 单次固化的单项变化硬上限
+  daily_global_delta_limit: 0.05  # 24小时内单项总变化上限
+  return_to_baseline: 0.015       # 缺少持续证据时缓慢回归初始人格
+  base_traits:
+    energy: 0.36                  # 活力
+    warmth: 0.62                  # 温暖
+    playfulness: 0.32             # 俏皮
+    initiative: 0.40              # 主动
+    directness: 0.78              # 直接
+    emotional_openness: 0.32      # 情绪表达
+    boundary_strength: 0.92       # 健康边界（不会被记忆削弱到安全线以下）
+    resilience: 0.90              # 韧性
+
+cognition:
+  enabled: false                    # 持久认知旁路：记录身份、目标、事件、分层记忆和演出动作
+  database_path: data/cognition.db # SQLite；关闭后不影响现有直播链路
+
+search:
+  enabled: true                    # 知识型观众问题自动联网搜索
+  max_results: 4                   # 每次交给 LLM 的搜索结果数
+  timeout_sec: 5                   # 整次搜索等待上限；失败后明确说明未查到
+  cache_ttl_sec: 1800              # 相同问题缓存30分钟，避免反复联网
+
+webui:
+  enabled: true                   # 测试台页面 http://127.0.0.1:8080
+  host: 127.0.0.1
+  port: 8080
+

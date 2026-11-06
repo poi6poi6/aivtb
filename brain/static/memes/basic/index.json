@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "basic-happy",
+      "file": "happy.png",
+      "caption": "笑起来，开心接梗",
+      "tags": [
+        "开心",
+        "happy",
+        "笑",
+        "高兴",
+        "好耶"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "basic-calm",
+      "file": "calm.png",
+      "caption": "收到，慢慢来",
+      "tags": [
+        "平静",
+        "daily",
+        "收到",
+        "你好",
+        "早安"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "basic-shy",
+      "file": "shy.png",
+      "caption": "有一点害羞，悄悄比心",
+      "tags": [
+        "害羞",
+        "shy",
+        "比心",
+        "喜欢"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "basic-sad",
+      "file": "sad.png",
+      "caption": "委屈掉小眼泪",
+      "tags": [
+        "伤心",
+        "sad",
+        "委屈",
+        "难过"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "basic-confused",
+      "file": "confused.png",
+      "caption": "疑惑，怎么回事",
+      "tags": [
+        "疑惑",
+        "confused",
+        "问号",
+        "什么"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "basic-tease",
+      "file": "tease.png",
+      "caption": "无语，轻轻吐槽",
+      "tags": [
+        "吐槽",
+        "无语",
+        "angry",
+        "离谱"
+      ],
+      "enabled": true
+    }
+  ]
+}

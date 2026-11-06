@@ -1,0 +1,32 @@
+name: 屏幕航点示例策略
+strategy: screen_waypoints
+long_term_goal: 沿预设的屏幕航点安全移动并完成阶段目标
+controls:
+  up: w
+  down: s
+  left: a
+  right: d
+navigation:
+  tolerance: 0.06
+  waypoints:
+    - [0.30, 0.70]
+    - [0.55, 0.55]
+    - [0.78, 0.35]
+tasks:
+  - name: 到达目标区域
+    complete_keywords: [已到达, objective complete]
+  - name: 完成关卡
+    complete_keywords: [通关, victory]
+recognition:
+  death_keywords: [失败, game over, you died]
+  menu_keywords: [设置, settings, pause]
+  stuck_motion_threshold: 1.2
+  stuck_frames: 5
+  ocr_regions:
+    - {name: center, rect: [0.10, 0.10, 0.80, 0.80]}
+  # 示例为绿色角色标记。不同游戏必须用截图采样并校准 HSV 与最小面积。
+  color_objects:
+    - name: player
+      hsv_min: [35, 90, 80]
+      hsv_max: [85, 255, 255]
+      min_area: 0.0002

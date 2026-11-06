@@ -1,0 +1,16 @@
+const fs = require('fs'), vm = require('vm'), assert = require('assert');
+const html = fs.readFileSync('brain/static/index.html', 'utf8');
+const start = html.indexOf('let latestCoatTurn =');
+const end = html.indexOf('let coordinatedListening =', start);
+const context = vm.createContext({appearance:{coatVisible:1}});
+vm.runInContext(html.slice(start,end), context);
+for (const text of ['穿外套','穿上外套','把外套穿上','穿回外套']) assert.equal(context.parseCoatCommand(text),1);
+for (const text of ['脱外套','脱掉外套','把外套脱下']) assert.equal(context.parseCoatCommand(text),0);
+assert.equal(context.parseCoatCommand('不要脱外套'),null);
+context.applyCoatCommand('穿上外套',20,new Set(['脱外套']));
+assert.equal(context.appearance.coatVisible,1);
+context.applyCoatCommand('脱外套',19,new Set(['脱外套']));
+assert.equal(context.appearance.coatVisible,1);
+context.applyCoatCommand('脱掉外套',21);
+assert.equal(context.appearance.coatVisible,0);
+console.log('Coat phrases, explicit intent and stale reply protection: OK');

@@ -1,0 +1,2780 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>助手 · 互动直播间</title>
+<script>if (new URLSearchParams(location.search).get('display') === '1') document.documentElement.classList.add('broadcast-display');</script>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, "Microsoft YaHei", sans-serif; background: #14151a; color: #e8e8ea; margin: 0; }
+  header { padding: 12px 20px; background: #1d1f26; display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; border-bottom: 1px solid #2a2d37; }
+  h1 { font-size: 16px; margin: 0; }
+  #status { font-size: 12px; color: #9aa0ab; margin-right: auto; }
+  #learning-status { font-size: 12px; color: #70c995; }
+  #personality-status { font-size: 12px; color: #ff9fc6; }
+  #memory-status { font-size: 12px; color: #f3cf74; }
+  #runtime-status { font-size: 12px; color: #c49bff; }
+  #director-status { font-size: 12px; color: #8ecbff; }
+  #game-agent-status { font-size: 12px; color: #d6b36a; }
+  #director-phase { padding: 3px 6px; font-size: 12px; }
+  header label { font-size: 12px; color: #9aa0ab; }
+  main { display: grid; grid-template-columns: 320px 1fr 1fr; gap: 12px; padding: 12px 20px; }
+  section { background: #1d1f26; border-radius: 8px; padding: 12px; height: 62vh; overflow-y: auto; }
+  #avatar { padding: 0; position: relative; overflow: hidden; }
+  #avatar-canvas { width: 100%; height: 100%; }
+  #avatar-status { position: absolute; top: 10px; left: 12px; font-size: 12px; color: #7d8390; }
+  #avatar-view-controls { position: absolute; top: 8px; right: 8px; z-index: 7; display: flex; padding: 2px; gap: 2px; border: 1px solid #343845; border-radius: 7px; background: rgba(20,21,26,.82); backdrop-filter: blur(4px); }
+  #avatar-view-controls button { min-width: 48px; padding: 4px 8px; border: 0; background: transparent; color: #9aa0ab; font-size: 12px; }
+  #avatar-view-controls button.active { background: #476580; color: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+  #subtitle { position: absolute; left: 8%; right: 8%; bottom: 18px; z-index: 5; padding: 8px 12px; border-radius: 8px; background: rgba(10,11,15,.72); color: #fff; text-align: center; font-size: 15px; line-height: 1.45; text-shadow: 0 1px 2px #000; opacity: 0; transform: translateY(6px); transition: .16s ease; pointer-events: none; }
+  #subtitle.visible { opacity: 1; transform: translateY(0); }
+  #broadcast-notice { position: absolute; left: 10%; right: 10%; top: 16px; z-index: 6; padding: 8px 14px; border-radius: 12px; background: rgba(20,24,38,.85); color: #fff; text-align: center; font-size: 15px; pointer-events: none; }
+  h2 { font-size: 13px; color: #9aa0ab; margin: 0 0 8px; }
+  .row { padding: 6px 8px; border-radius: 6px; margin-bottom: 6px; background: #23262f; font-size: 13px; line-height: 1.5; word-break: break-all; }
+  .row .meta { color: #7d8390; font-size: 11px; margin: 0 6px; }
+  .row.replied { outline: 1px solid #3d7; }
+  .row.thinking { opacity: .55; }
+  .tag { display: inline-block; padding: 0 6px; border-radius: 4px; font-size: 11px; margin-right: 6px; background: #2c303c; }
+  .tag.death { background: #5a2d2d; } .tag.gift { background: #4a3a1f; }
+  .tag.chat { background: #22334a; } .tag.find { background: #1f4a2d; }
+  .tag.idle, .tag.ambient { background: #333; }
+  .reply .emo { color: #ffb86b; margin-right: 6px; }
+  .reply .fallback { color: #ff7676; font-size: 11px; margin-left: 6px; }
+  .reply .actions { color: #8ecbff; font-size: 11px; margin-left: 6px; }
+  #inject { grid-column: 1 / 4; background: linear-gradient(135deg, #202a31, #1d1f26 58%); border: 1px solid #31414d; border-radius: 10px; padding: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; box-shadow: 0 8px 28px rgba(0,0,0,.16); }
+  #inject .composer-title { width: 100%; color: #b8c9d4; font-size: 12px; }
+  #companion-user { width: 72px; }
+  #send { background: #476580; border-color: #5c7d98; min-width: 72px; }
+  #feature-controls { grid-column: 1 / 4; background: #1d1f26; border: 1px solid #2a2d37; border-radius: 8px; padding: 10px 12px; color: #9aa0ab; }
+  #feature-controls summary { cursor: pointer; user-select: none; font-size: 13px; color: #b8bdc7; }
+  #feature-body { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding-top: 12px; }
+  #feature-body label, #feature-body span { font-size: 12px; }
+  #advanced-inject { width: 100%; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-top: 10px; margin-top: 2px; border-top: 1px solid #2a2d37; }
+  #advanced-inject::before { content: '高级事件测试'; color: #7d8390; font-size: 12px; margin-right: 2px; }
+  input, select, button { background: #14151a; color: #e8e8ea; border: 1px solid #2a2d37; border-radius: 6px; padding: 6px 10px; font-size: 13px; }
+  button { cursor: pointer; background: #2c303c; }
+  button:hover { background: #3a3f4d; }
+  button.listening { background: #7b2731; border-color: #ff7282; }
+  button.danger { background: #7b2731; border-color: #b74452; font-weight: 700; }
+  button.danger:hover { background: #993340; }
+  #game-agent-panel { grid-column: 1 / 4; height: auto; min-height: 190px; display: grid; grid-template-columns: minmax(260px, 38%) 1fr; gap: 12px; overflow: hidden; }
+  #game-frame { width: 100%; height: 230px; object-fit: contain; background: #101116; border-radius: 6px; }
+  #game-agent-details { white-space: pre-wrap; font: 12px/1.55 ui-monospace, Consolas, monospace; color: #bbc2cd; margin: 0; overflow-y: auto; max-height: 230px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } #inject, #feature-controls, #game-agent-panel { grid-column: 1; } #game-agent-panel { grid-template-columns: 1fr; } }
+  #text { flex: 1; min-width: 220px; }
+  #interaction-status { color: #b8dccd; font-size: 14px; min-height: 24px; }
+  #voice-review { width: 100%; padding: 8px 0; color: #f3cf74; font-size: 13px; }
+  #voice-review[hidden] { display: none; }
+  .edit-transcript { margin-left: 8px; font-size: 11px; }
+  #continuous-label { font-size: 12px; }
+</style>
+<link rel="stylesheet" href="/static/companion.css?v=2">
+<link rel="stylesheet" href="/static/console.css?v=2">
+<style>
+  #avatar-performance-controls { position:absolute; z-index:7; left:12px; right:12px; bottom:12px; padding:8px 11px; border:1px solid #e2e8ce33; border-radius:12px; background:#14291fee; backdrop-filter:blur(8px); }
+  .avatar-performance-row { display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+  .avatar-performance-row + .avatar-performance-row { margin-top:6px; }
+  #avatar-performance-controls label, #performance-level { font-size:11px; color:#e5d9bb; }
+  #performance-intensity { flex:1; min-width:60px; width:70px; padding:0; accent-color:#e6c995; }
+  #performance-level { min-width:67px; text-align:right; font-variant-numeric:tabular-nums; }
+  #avatar-performance-controls button { padding:3px 9px; border-radius:20px; font-size:11px; }
+  #avatar-performance-controls button[aria-pressed="true"] { background:#e6d8b9; color:#22382c; }
+  #avatar-preview { margin-left:auto; }
+  #avatar-preview-kind { max-width:140px; padding:3px 8px; border-radius:12px; font-size:11px; color:#e5d9bb; background:#20392d; border:1px solid #e2e8ce33; }
+  #avatar-preview-status { margin:5px 0 0; color:#b6c9bb; font-size:11px; line-height:1.5; }
+  #avatar-preview-status:empty { display:none; }
+  html:not(.broadcast-display) #avatar #subtitle { left:8%; right:8%; bottom:125px; }
+  html:not(.broadcast-display) #avatar .stage-footnote { display:none; }
+  .broadcast-display #avatar-performance-controls { display:none !important; }
+  #bilibili-panel { width:100%; padding:14px; border:1px solid var(--line); border-radius:14px; background:#14271f; }
+  #bilibili-form { display:flex; flex-wrap:wrap; gap:8px; }
+  #bilibili-query { flex:1; min-width:180px; }
+  #bilibili-panel p { font-size:12px; color:var(--muted); }
+  #bilibili-results { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; max-height:420px; overflow:auto; }
+  #bilibili-results article { padding:12px; border:1px solid var(--line); border-radius:12px; }
+  #bilibili-results img { width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:8px; }
+  #bilibili-results h2 { color:var(--paper); line-height:1.6; }
+  #bilibili-panel a { color:var(--gold); }
+  #bilibili-player iframe { width:100%; aspect-ratio:16/9; border:0; border-radius:12px; background:#000; }
+  #bilibili-player-area { height:auto; margin:12px 0; }
+  .bilibili-result-tools { margin:12px 0; padding:12px; border:1px solid var(--line); border-radius:12px; background:#20392d; }
+  .bilibili-result-tools a { display:inline-block; padding:8px 12px; margin-right:8px; border:1px solid var(--gold); border-radius:8px; font-size:14px; font-weight:600; }
+  .bilibili-result-tools summary { cursor:pointer; margin:10px 0; }
+  .bilibili-result-tools textarea { display:block; width:100%; max-width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; background:#14271f; color:var(--paper); font:12px/1.5 monospace; resize:vertical; }
+  .bilibili-review { margin:16px 0 8px; padding:14px; border:1px solid var(--line); border-radius:12px; background:#20392d; }
+  .bilibili-review h3 { margin:0 0 8px; font-size:16px; }
+  .bilibili-review p { margin:8px 0; overflow-wrap:anywhere; }
+  .bilibili-review-hint { color:var(--muted); font-size:12px; }
+  .bilibili-review button { margin:6px 10px 0 0; }
+</style>
+</head>
+<body>
+<a class="console-skip-link" href="#text">跳到聊天输入</a>
+<header>
+  <h1>助手 · 互动直播间</h1>
+  <span id="status">连接中…</span>
+  <label><input type="checkbox" id="autoplay" checked> 自动播放语音</label>
+  <span id="audioStatus" style="font-size:12px;color:#9aa0ab"></span>
+  <button id="pause-audio">暂停</button>
+  <button id="interrupt-chat">打断</button>
+  <button id="focus-mode" aria-pressed="false">专注陪伴</button>
+</header>
+<main id="companion-shell">
+  <aside id="console-nav" aria-label="控制台导航">
+    <div class="console-nav-title">工作台 <span>CONTROL ROOM</span></div>
+    <nav>
+      <div class="console-nav-group">
+        <h2>日常对话</h2>
+        <a class="console-nav-main" data-console-target="inject" href="#inject" aria-current="location"><span aria-hidden="true">◌</span>聊天与陪伴</a>
+        <button id="open-songs" data-console-service="live" type="button"><span aria-hidden="true">♪</span>本地点歌</button>
+        <button id="open-bilibili" data-console-service="live" type="button"><span aria-hidden="true">♫</span>B站点歌</button>
+      </div>
+      <div class="console-nav-group">
+        <h2>直播运营</h2>
+        <a id="shows-link" data-console-service="live" href="/shows" target="_blank" rel="noopener"><span aria-hidden="true">✧</span>栏目手记 <small>↗</small></a>
+        <a id="tarot-link" data-console-service="live" href="/tarot" target="_blank" rel="noopener"><span aria-hidden="true">✦</span>塔罗茶会 <small>↗</small></a>
+        <a id="polls-link" data-console-service="live" href="/polls" target="_blank" rel="noopener"><span aria-hidden="true">☷</span>栏目投票 <small>↗</small></a>
+        <a id="questions-link" data-console-service="live" href="/questions" target="_blank" rel="noopener"><span aria-hidden="true">?</span>待答问题 <small>↗</small></a>
+        <a data-console-service="live" href="/tasks" target="_blank" rel="noopener"><span aria-hidden="true">✳</span>后台任务 <small>↗</small></a>
+        <a data-console-service="live" href="/bilibili-activity" target="_blank" rel="noopener"><span aria-hidden="true">◈</span>B站自主活动 <small>↗</small></a>
+        <a id="qq-link" data-console-service="live" href="/qq" target="_blank" rel="noopener"><span aria-hidden="true">◌</span>QQ 聊天 <small>↗</small></a>
+        <a id="companion-link" data-console-service="live" href="/companion" target="_blank" rel="noopener" hidden><span aria-hidden="true">◇</span>陪伴能力 <small>↗</small></a>
+      </div>
+      <div class="console-nav-group">
+        <h2>本地测试</h2>
+        <a data-console-target="local-test-panel" href="#local-test-panel"><span aria-hidden="true">▷</span>场景测试</a>
+        <a data-console-service="live" href="/rehearsal" target="_blank" rel="noopener"><span aria-hidden="true">◎</span>开播演练 <small>↗</small></a>
+        <a id="runtime-link" data-console-service="live" href="/runtime" target="_blank" rel="noopener"><span aria-hidden="true">⌁</span>运行状态 <small>↗</small></a>
+      </div>
+      <div class="console-nav-group">
+        <h2>高级设置</h2>
+        <a data-console-target="feature-controls" href="#feature-controls"><span aria-hidden="true">⚙</span>偏好与调试</a>
+      </div>
+    </nav>
+    <p class="console-nav-foot">↗ 在新页面打开<br>当前对话会继续保留</p>
+  </aside>
+  <div id="console-summary" aria-label="连接与播放状态">
+    <dl class="console-health-grid">
+      <div><dt>连接</dt><dd id="console-connection">正在连接</dd></div>
+      <div><dt>模型配置</dt><dd id="console-model">等待状态</dd></div>
+      <div><dt>语音配置</dt><dd id="console-voice">等待状态</dd></div>
+      <div><dt>播放</dt><dd id="console-player">等待状态</dd></div>
+      <div><dt>当前环境</dt><dd id="console-mode">等待状态</dd></div>
+    </dl>
+    <div class="console-health-actions">
+      <button id="console-enable-audio" type="button" hidden>启用声音</button>
+      <button id="console-reconnect" type="button" hidden>重新连接</button>
+    </div>
+    <p id="console-notice" role="status" aria-live="polite" hidden></p>
+    <p id="console-update-notice" role="status" aria-live="polite" hidden></p>
+    <p id="console-local-banner" role="status" hidden>离线测试环境 · 使用模拟回复与提示音</p>
+  </div>
+  <section id="avatar">
+    <div class="stage-story" aria-hidden="true">
+      <div class="stage-kicker">LIVE STUDIO</div>
+      <h2>慢一点，<br>也没关系。</h2>
+      <p>不必急着解释。<br>我在听。</p>
+    </div>
+    <div class="stage-footnote">助手 / 陪你度过这一刻</div>
+    <div id="avatar-canvas"></div>
+    <span id="avatar-status">皮套加载中…</span>
+    <div id="avatar-view-controls" role="group" aria-label="皮套景别">
+      <button type="button" data-avatar-view="half" aria-pressed="false">半身</button>
+      <button type="button" data-avatar-view="full" aria-pressed="true">全身</button>
+    </div>
+    <div id="avatar-performance-controls" role="group" aria-label="角色演出强度">
+      <div class="avatar-performance-row">
+        <label for="performance-intensity">演出强度</label>
+        <input id="performance-intensity" type="range" min="0" max="300" step="10" value="180" aria-describedby="performance-level">
+        <output id="performance-level" for="performance-intensity">明显 180%</output>
+      </div>
+      <div class="avatar-performance-row">
+        <button id="performance-natural" type="button" aria-pressed="false">自然</button>
+        <button id="performance-bold" type="button" aria-pressed="true">明显</button>
+        <button id="performance-exaggerated" type="button" aria-pressed="false">夸张</button>
+        <label for="avatar-preview-kind">动作</label>
+        <select id="avatar-preview-kind" aria-label="选择预览动作">
+          <option value="">综合演出</option>
+          <option value="speech:开心">开心地说</option>
+          <option value="speech:惊讶">惊讶地说</option>
+          <option value="speech:委屈">委屈地说</option>
+          <option value="intent:focus">斟酌后强调</option>
+          <option value="intent:question">问完等回答</option>
+          <option value="倾听">倾听</option>
+          <option value="思考">思考</option>
+          <option value="认可">认可</option>
+          <option value="疑惑">疑惑</option>
+          <option value="轻吐槽">吐槽</option>
+          <option value="被夸">被夸</option>
+        </select>
+        <button id="avatar-preview" type="button" aria-pressed="false">预览10秒</button>
+      </div>
+      <p id="avatar-preview-status" role="status" aria-live="polite"></p>
+    </div>
+    <div id="subtitle"></div>
+    <div id="broadcast-notice" role="status" hidden></div>
+    <button id="broadcast-enable-audio" type="button" hidden>点击启用直播声音</button>
+  </section>
+  <div id="conversation-panel">
+    <section id="events" aria-label="聊天记录" tabindex="0"><h2>我们的对话</h2><p id="chat-empty">从一句“你好”开始吧。</p></section>
+    <button id="chat-latest" type="button" hidden>回到最新</button>
+  </div>
+  <div id="inject">
+    <span class="composer-title">和助手说句话，她会用皮套和语音回应你</span>
+    <span id="interaction-status" role="status" aria-live="polite" style="width:100%">可以和我说话</span>
+    <div class="mic-indicator"><span id="mic-state" role="status" aria-live="polite">麦克风未开启</span><button id="stop-mic" hidden>停止收音</button></div>
+    <input id="companion-user" value="你" title="称呼" aria-label="你的称呼">
+    <input id="text" placeholder="今天，想和我聊些什么？" aria-label="聊天内容，按回车发送" autocomplete="off">
+    <button id="send">发送</button>
+    <button id="chat-image" type="button" hidden title="图片会通过本机 Codex 套餐交给 GPT Astra">发图片</button>
+    <input id="chat-image-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+    <button id="chat-image-cancel" type="button" hidden>取消所选图片</button>
+    <span id="chat-image-notice" role="status" aria-live="polite" style="width:100%"></span>
+    <div id="song-panel" hidden>
+      <div class="song-toolbar"><strong>一起听首歌</strong><button id="close-songs" type="button">收起</button></div>
+      <p>输入“点歌：歌名”播放曲库歌曲；直接发 BV 号或 B 站视频链接也可点播。</p>
+      <div class="song-toolbar"><input id="song-search" type="search" placeholder="搜索歌名" aria-label="搜索歌曲"><button id="song-refresh" type="button">刷新曲库</button></div>
+      <label>选择本地音频 <input id="song-files" type="file" accept="audio/*" multiple></label>
+      <div id="song-list"></div>
+      <p id="song-status" role="status" aria-live="polite">还没有点歌</p>
+      <audio id="song-audio" hidden controls preload="metadata" aria-label="歌曲播放器"></audio>
+      <div class="song-toolbar"><button id="song-next" type="button">下一首</button><button id="song-stop" type="button">停止并清空队列</button></div>
+      <ol id="song-queue" aria-label="待播放歌曲"></ol>
+      <p>弹幕或聊天：唱歌 歌名（RVC翻唱） · 原创 主题（Suno创作）</p>
+      <p id="music-notice" role="status" aria-live="polite">原创：复制文稿到Suno生成，将下载文件放到 data/music/suno-inbox，再确认导入。</p>
+      <div id="music-requests" aria-label="音乐制作待办"></div>
+    </div>
+    <div id="bilibili-panel" hidden>
+      <div class="song-toolbar"><strong>B站点歌</strong><button id="bilibili-close" type="button">收起</button></div>
+      <p><button id="bilibili-browser-connect" type="button">连接浏览器助手</button> · <a href="/static/bilibili-browser-setup.html" target="_blank" rel="noopener noreferrer">安装与使用说明</a></p>
+      <p id="bilibili-browser-status" role="status">BV号或官方链接可以直接播放；按歌名搜索时，请先安装并连接浏览器助手。</p>
+      <form id="bilibili-form">
+        <input id="bilibili-query" maxlength="500" required placeholder="BV号、B站视频链接、歌名或歌手" aria-label="B站点歌内容">
+        <button id="bilibili-search" type="submit">查找并播放</button>
+        <button id="bilibili-stop" type="button">停止查询或播放</button>
+      </form>
+      <p id="bilibili-status" role="status" aria-live="polite">BV号或官方链接播放指定视频；按歌名搜索使用浏览器助手，不能确认合适版本时由你手选。</p>
+      <section id="bilibili-player-area" hidden aria-label="B站播放器">
+        <h2 id="bilibili-title"></h2>
+        <p id="bilibili-player-status" role="status"></p>
+        <div id="bilibili-player"></div>
+        <a id="bilibili-original" target="_blank" rel="noopener noreferrer">在B站打开</a>
+      </section>
+      <div id="bilibili-results" aria-label="B站搜索结果"></div>
+      <p>声音从当前浏览器输出。若自动播放被限制，点击播放器即可。<a id="bilibili-external-search" href="https://search.bilibili.com/" target="_blank" rel="noopener noreferrer">去B站搜索</a> · <a href="/bilibili" target="_blank" rel="noopener noreferrer">独立点歌页面 ↗</a></p>
+    </div>
+    <button id="voice-input" hidden title="使用浏览器语音识别；音频不会上传给本项目后端">🎙 语音对话</button>
+    <label id="continuous-label" hidden><input type="checkbox" id="continuous-voice"> 连续语音（轮流说话）</label>
+    <button id="retry-chat" hidden>重试上条</button>
+    <div id="voice-review" hidden>
+      <span id="voice-review-hint">识别结果已放入输入框，可修改后发送。</span>
+      <button id="confirm-voice">确认发送</button><button id="discard-voice">取消这条</button>
+    </div>
+  </div>
+  <details id="local-test-panel" class="console-disclosure">
+    <summary><span>本地场景测试</span><small>选择场景，检查发送与播放流程</small></summary>
+    <div class="console-test-body">
+      <p id="test-mode-note" class="console-helper">连接后显示当前测试环境。测试场景不会自动发送。</p>
+      <div class="console-test-fields">
+        <label for="test-scenario">选择场景</label>
+        <select id="test-scenario">
+          <option value="chat">普通对话</option>
+          <option value="comfort">倾听与安慰</option>
+          <option value="gift">礼物感谢</option>
+          <option value="interrupt">打断当前播放</option>
+          <option value="slow">回复延迟</option>
+          <option value="reply_error">回复失败</option>
+          <option value="tts_error">语音失败</option>
+        </select>
+        <label for="test-preview">场景内容</label>
+        <textarea id="test-preview" rows="3" placeholder="选择场景后，可以先修改内容。"></textarea>
+      </div>
+      <div class="console-test-actions">
+        <button id="test-run" type="button" disabled>填入聊天草稿</button>
+        <a id="test-open-offline" href="http://127.0.0.1:18080/" target="_blank" rel="noopener">打开离线测试台 ↗</a>
+        <button id="test-copy-command" type="button">复制离线启动命令</button>
+        <a id="test-open-rehearsal" data-console-service="live" href="/rehearsal" target="_blank" rel="noopener">运行真实开播演练 ↗</a>
+      </div>
+      <p id="test-result" role="status" aria-live="polite"></p>
+      <details id="custom-event-panel" class="console-custom-event">
+        <summary>自定义事件与模拟输入</summary>
+        <div class="console-setting-row">
+          <label><input type="checkbox" id="manual-mode"> 手动测试模式</label>
+          <label id="mock-label" hidden><input type="checkbox" id="mock-danmaku"> 模拟弹幕</label>
+          <label id="mock-game-label" hidden><input type="checkbox" id="mock-game"> 游戏模拟</label>
+        </div>
+        <div id="advanced-inject">
+          <select id="source" aria-label="事件来源"><option value="danmaku">弹幕</option><option value="game">游戏事件</option></select>
+          <select id="kind" aria-label="事件类型">
+            <option value="chat">聊天</option><option value="gift">礼物</option>
+            <option value="death">死亡</option><option value="find">收获</option>
+            <option value="ambient">日常</option>
+          </select>
+          <input id="user" value="测试员" size="8" title="测试用户名" aria-label="测试用户名">
+          <input id="advanced-text" placeholder="测试事件内容" aria-label="测试事件内容">
+          <button id="advanced-send">注入测试事件</button>
+          <button data-preset='{"source":"danmaku","kind":"chat","text":"你真的是AI吗","user":"测试员"}'>AI身份</button>
+          <button data-preset='{"source":"danmaku","kind":"gift","text":"辣条x5","user":"村口王师傅"}'>礼物</button>
+          <button data-preset='{"source":"danmaku","kind":"chat","text":"今天有点累，只想找个人说说话","user":"小雨"}'>倾听测试</button>
+          <button data-preset='{"source":"danmaku","kind":"chat","text":"明天有件重要的事，我有点紧张","user":"阿星"}'>安慰测试</button>
+        </div>
+      </details>
+    </div>
+  </details>
+  <details id="feature-controls" class="console-disclosure">
+    <summary><span>高级设置</span><small>角色偏好、记忆管理与扩展功能</small></summary>
+    <div id="feature-body">
+    <label>动作幅度 <input id="motion-intensity" type="range" min="0" max="160" value="80" step="5" aria-label="角色动作幅度"><output id="motion-level">80%</output></label>
+    <label title="说话时的转头、侧倾和点头；设为 0 可关闭额外头部动作">说话头动 <input id="speech-head-intensity" type="range" min="0" max="160" value="100" step="5" aria-label="说话时头部动作幅度"><output id="speech-head-level">100%</output></label>
+    <label>表情强度 <input id="face-intensity" type="range" min="0" max="100" value="80" step="5" aria-label="角色微表情强度"><output id="face-level">80%</output></label>
+    <label title="视线微扫视、眼睑细微变化与额外眨眼；设为 0 仍保留基础眨眼">眼部活动 <input id="eye-intensity" type="range" min="0" max="100" value="75" step="5" aria-label="角色眼部活动强度"><output id="eye-level">75%</output></label>
+    <label>接话节奏 <select id="voice-pace"><option value="natural">自然</option><option value="quick">快一点</option><option value="patient">多等一会儿</option></select></label>
+    <label>常用名字 <input id="voice-names" maxlength="240" placeholder="助手，用逗号分隔" aria-label="语音识别常用名字"></label>
+    <a href="/experience-report" download="companion-experience.json" style="color:inherit">导出本次体验指标</a>
+    <button id="skip">跳过当前语音</button>
+    <button id="clear-audio">清空语音</button>
+    <span id="learning-status"></span>
+    <span id="personality-status"></span>
+    <span id="memory-status"></span>
+    <details style="width:100%" id="memory-panel">
+      <summary>记忆管理</summary>
+      <p>查看记忆类型、来源和最后确认时间。召回次数表示曾选入上下文，不代表回答一定采用。修改或忘记会停止使用旧版本，历史记录仍保留。</p>
+      <p><a href="/runtime#memory-inspection" data-console-service="live">查看本轮记忆选择与回复策略</a></p>
+      <button id="refresh-memories">刷新记忆</button>
+      <input id="memory-search" type="search" placeholder="搜索内容、人物或来源" aria-label="搜索记忆">
+      <select id="memory-filter" aria-label="记忆筛选"><option value="active">使用中</option><option value="temporary">临时状态</option><option value="history">历史版本</option><option value="all">全部记忆</option></select>
+      <span id="memory-feedback" role="status"></span>
+      <div id="memory-list"></div>
+    </details>
+    <span id="runtime-status"></span>
+      <span id="source-status">直播输入：关闭</span>
+      <span id="director-status"></span>
+      <span id="game-agent-status"></span>
+      <label id="director-control">导演阶段:
+        <select id="director-phase">
+          <option value="auto">自动</option><option value="opening">开场</option>
+          <option value="chatting">闲聊</option><option value="interaction">全场互动</option>
+          <option value="highlight">高能时刻</option><option value="closing">收尾</option>
+        </select>
+      </label>
+      <label id="game-observe-label" hidden><input type="checkbox" id="game-observe"> 游戏观察</label>
+      <label id="game-control-label" hidden><input type="checkbox" id="game-control"> 有限控制</label>
+      <button id="game-estop" class="danger" hidden>急停 F12</button>
+      <button id="game-reset" hidden>复位急停</button>
+    </div>
+  </details>
+  <section id="game-agent-panel" hidden>
+    <img id="game-frame" alt="目标游戏窗口最近一帧">
+    <pre id="game-agent-details">等待游戏画面…</pre>
+  </section>
+</main>
+<footer class="scene-caption"><span>一段对话 · 一点陪伴</span><span>助手 COMPANION</span></footer>
+<script src="/static/vendor/live2dcubismcore.min.js"></script>
+<script src="/static/vendor/pixi.min.js"></script>
+<script src="/static/vendor/pixi-live2d-display.min.js?v=cubism4-0.4.0"></script>
+<script src="/static/presence.js?v=2"></script>
+<script src="/static/motion.js?v=5"></script>
+<script src="/static/face.js?v=7"></script>
+<script src="/static/gaze.js?v=6"></script>
+<script src="/static/gestures.js?v=1"></script>
+<script src="/static/speech-cues.js?v=1"></script>
+<script src="/static/speech-performance.js?v=2"></script>
+<script src="/static/interaction.js?v=2"></script>
+<script src="/static/question-pin.js"></script>
+<script src="/static/console.js?v=9"></script>
+<script src="/static/companion-chat.js"></script>
+<script>
+const presence = new CompanionPresence();
+const interaction = new ChatInteraction();
+const interactionStatusEl = document.getElementById('interaction-status');
+const pauseAudioEl = document.getElementById('pause-audio');
+const continuousEl = document.getElementById('continuous-voice');
+const reviewEl = document.getElementById('voice-review');
+const reviewHintEl = document.getElementById('voice-review-hint');
+const retryEl = document.getElementById('retry-chat');
+let voiceDraft = false, correctingId = null, lastSubmitted = null, autoSendTimer = null;
+let voiceRecognition = null, voiceActive = false, voiceStarting = false, voiceRestartTimer = null;
+let ttsBackend = 'mock';
+let pausedForMic = false;
+let generationActive = false;
+const synthesisTurns = new Set();
+function renderInteraction() {
+  interactionStatusEl.textContent = interaction.phase === 'error' ? interaction.label()
+    : voiceDraft ? '检查识别内容 · 可修改、确认或取消'
+    : voiceActive ? (interaction.phase === 'recognizing' ? '正在识别' : '正在听你说')
+    : interaction.label();
+  const continuous = document.getElementById('continuous-voice').checked;
+  document.getElementById('mic-state').textContent = (voiceActive ? '● 正在收音'
+    : voiceStarting ? '正在开启麦克风' : voiceDraft ? '等待确认 · 麦克风已停止' : '麦克风未开启')
+    + (continuous ? ' · 连续语音已开启' : '');
+  document.getElementById('stop-mic').hidden = !(voiceActive || voiceStarting || continuous);
+}
+function setInteraction(phase, turn, error) {
+  interaction.set(phase, turn, error);
+  renderInteraction();
+  retryEl.hidden = !lastSubmitted || !['error','thinking','synthesizing','ready'].includes(interaction.phase);
+}
+setInterval(renderInteraction, 1000);
+let ws;
+let reconnectTimer;
+let reconnectProbe = null;
+let roomBusy = false;
+const eventsEl = document.getElementById('events');
+const repliesEl = eventsEl;
+const chatLatestEl = document.getElementById('chat-latest');
+let unreadChatMessages = 0;
+function chatNearLatest() {
+  return (Number(eventsEl.scrollHeight) || 0) - (Number(eventsEl.scrollTop) || 0)
+    - (Number(eventsEl.clientHeight) || 0) <= 64;
+}
+function followChatTimeline(wasNearLatest, added = true) {
+  if (wasNearLatest) {
+    eventsEl.scrollTop = eventsEl.scrollHeight;
+    unreadChatMessages = 0;
+  } else if (added) unreadChatMessages++;
+  if (chatLatestEl) {
+    chatLatestEl.hidden = unreadChatMessages === 0;
+    chatLatestEl.textContent = `回到最新 · ${unreadChatMessages} 条新消息`;
+  }
+}
+eventsEl.addEventListener('scroll', () => {
+  if (chatNearLatest()) followChatTimeline(true, false);
+});
+if (chatLatestEl) chatLatestEl.onclick = () => followChatTimeline(true, false);
+const statusEl = document.getElementById('status');
+const learningStatusEl = document.getElementById('learning-status');
+const personalityStatusEl = document.getElementById('personality-status');
+const memoryStatusEl = document.getElementById('memory-status');
+const runtimeStatusEl = document.getElementById('runtime-status');
+const sourceStatusEl = document.getElementById('source-status');
+const directorStatusEl = document.getElementById('director-status');
+const directorControlEl = document.getElementById('director-control');
+const directorPhaseEl = document.getElementById('director-phase');
+const gameAgentStatusEl = document.getElementById('game-agent-status');
+const gameObserveLabelEl = document.getElementById('game-observe-label');
+const gameObserveEl = document.getElementById('game-observe');
+const gameControlLabelEl = document.getElementById('game-control-label');
+const gameControlEl = document.getElementById('game-control');
+const gameEstopEl = document.getElementById('game-estop');
+const gameResetEl = document.getElementById('game-reset');
+const gameAgentPanelEl = document.getElementById('game-agent-panel');
+const avatarViewButtons = [...document.querySelectorAll('[data-avatar-view]')];
+let avatarViewMode = localStorage.getItem('avatar-view-mode') === 'half' ? 'half' : 'full';
+let avatarLayout = null;
+
+function setAvatarView(mode, persist = true) {
+  avatarViewMode = mode === 'half' ? 'half' : 'full';
+  for (const button of avatarViewButtons) {
+    const active = button.dataset.avatarView === avatarViewMode;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  }
+  if (persist) localStorage.setItem('avatar-view-mode', avatarViewMode);
+  if (avatarLayout) avatarLayout();
+}
+for (const button of avatarViewButtons) {
+  button.addEventListener('click', () => setAvatarView(button.dataset.avatarView));
+}
+setAvatarView(avatarViewMode, false);
+const gameFrameEl = document.getElementById('game-frame');
+const gameAgentDetailsEl = document.getElementById('game-agent-details');
+const autoplayEl = document.getElementById('autoplay');
+const audioStatusEl = document.getElementById('audioStatus');
+const skipAudioEl = document.getElementById('skip');
+const clearAudioEl = document.getElementById('clear-audio');
+const manualModeEl = document.getElementById('manual-mode');
+const mockDanmakuEl = document.getElementById('mock-danmaku');
+const mockLabelEl = document.getElementById('mock-label');
+const mockGameEl = document.getElementById('mock-game');
+const mockGameLabelEl = document.getElementById('mock-game-label');
+const subtitleEl = document.getElementById('subtitle');
+const broadcastNoticeEl = document.getElementById('broadcast-notice');
+let broadcastNoticeTimer;
+const rows = Object.create(null);
+const eventInfo = Object.create(null);
+const replyInfo = Object.create(null);
+const partialReplies = Object.create(null);
+const CHAT_HISTORY_LIMIT = 300;
+let chatHistory = [];
+let editableVoiceTurn = null;
+function rememberChatRow(row, turnId) {
+  chatHistory.push({row, turnId: String(turnId)});
+}
+function pruneChatHistory() {
+  if (chatHistory.length <= CHAT_HISTORY_LIMIT) return;
+  // Active speech/generation and the current correction must remain addressable
+  // even when a burst of unrelated live chat fills the visible history.
+  const protectedTurns = new Set([
+    ...Object.keys(partialReplies), ...synthesisTurns,
+    generationActive ? interaction.turn : null,
+    currentAudioItem?.turn_id ?? currentAudioItem?.id,
+    playbackState.current_turn_id, correctingId, editableVoiceTurn,
+  ].filter(id => id != null).map(String));
+  let excess = chatHistory.length - CHAT_HISTORY_LIMIT;
+  chatHistory = chatHistory.filter(entry => {
+    if (excess <= 0 || protectedTurns.has(entry.turnId) || entry.row.questionPinPending) return true;
+    excess--;
+    entry.row.remove();
+    if (rows[entry.turnId] === entry.row) delete rows[entry.turnId];
+    return false;
+  });
+  const retained = new Set([...protectedTurns, ...chatHistory.map(entry => entry.turnId)]);
+  for (const collection of [eventInfo, replyInfo]) {
+    for (const id of Object.keys(collection)) if (!retained.has(id)) delete collection[id];
+  }
+}
+const voiceInputEl = document.getElementById('voice-input');
+const textInputEl = document.getElementById('text');
+const audioPlayer = new Audio();
+const directBroadcastAudio = document.documentElement.classList.contains('broadcast-display');
+let speechEnvelope = null;
+let audioPlaying = false;
+let currentAudioUrl = null;
+let currentAudioItem = null;
+let playbackState = {state: 'idle', queued: 0, dropped: 0, last_reason: ''};
+let audioContext = null;
+let audioAnalyser = null;
+let audioSamples = null;
+let audioSpectrum = null;
+let lastGameFrameCount = -1;
+
+function showManualMode(enabled) {
+  manualModeEl.checked = enabled;
+  mockDanmakuEl.disabled = enabled;
+  mockGameEl.disabled = enabled;
+}
+
+// 同一个 Audio 元素只能绑定一次 MediaElementSource。分析节点仍连接到扬声器，
+// 因此不会改变原有播放流程，只额外取得实时音量供 Live2D 嘴型使用。
+function ensureLipSyncAudio() {
+  if (directBroadcastAudio) return; // Keep the broadcast audio element on the native output path.
+  if (!audioContext) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    audioContext = new AudioContextClass();
+    audioContext.addEventListener('statechange', () => {
+      if (audioContext.state === 'running') ensureLipSyncAudio();
+    });
+  }
+  // Never route media into a suspended context: native audio can still play.
+  if (audioContext.state === 'suspended') { audioContext.resume().catch(() => {}); return; }
+  if (audioContext.state === 'running' && !audioAnalyser) {
+    audioAnalyser = audioContext.createAnalyser();
+    audioAnalyser.fftSize = 1024;
+    audioAnalyser.smoothingTimeConstant = 0.35;
+    audioSamples = new Uint8Array(audioAnalyser.fftSize);
+    const source = audioContext.createMediaElementSource(audioPlayer);
+    source.connect(audioAnalyser);
+    audioAnalyser.connect(audioContext.destination);
+  }
+}
+
+function sampleSpeechLevel() {
+  let level = 0;
+  if (audioPlaying && directBroadcastAudio && speechEnvelope) {
+    level = speechEnvelope[Math.min(speechEnvelope.length - 1, Math.floor(audioPlayer.currentTime * 50))] || 0;
+  }
+  if (audioPlaying && audioAnalyser && audioSamples) {
+    audioAnalyser.getByteTimeDomainData(audioSamples);
+    let energy = 0;
+    for (let i = 0; i < audioSamples.length; i++) {
+      const sample = (audioSamples[i] - 128) / 128;
+      energy += sample * sample;
+    }
+    level = Math.sqrt(energy / audioSamples.length);
+  }
+  return Number.isFinite(level) ? Math.max(0, Math.min(1, level)) : 0;
+}
+
+function sampleSpeechBrightness(level) {
+  if (!audioPlaying || level < .009 || !audioAnalyser?.getByteFrequencyData) return null;
+  const count = audioAnalyser.frequencyBinCount || audioAnalyser.fftSize / 2;
+  const sampleRate = audioContext?.sampleRate || 48000;
+  if (!Number.isFinite(count) || count < 2 || !Number.isFinite(sampleRate) || sampleRate <= 0) return null;
+  if (!audioSpectrum || audioSpectrum.length !== count) audioSpectrum = new Uint8Array(count);
+  try { audioAnalyser.getByteFrequencyData(audioSpectrum); } catch (_) { return null; }
+  // A timbre cue for broad/narrow lips, not a phoneme classifier. Normalize by
+  // band width so the larger high-frequency band cannot win just by bin count.
+  const binHz = sampleRate / (count * 2);
+  const meanBand = (low, high) => {
+    const first = Math.max(1, Math.ceil(low / binHz));
+    const last = Math.min(count - 1, Math.floor(high / binHz));
+    let power = 0;
+    for (let i = first; i <= last; i++) power += (audioSpectrum[i] / 255) ** 2;
+    return last >= first ? power / (last - first + 1) : 0;
+  };
+  const low = meanBand(200, 900), high = meanBand(1200, 5000);
+  return low + high > .0001 ? high / (low + high) : null;
+}
+
+function receiveAudio(item) {
+  if (item.event?.media_narration_id && !window.bilibiliNarration?.accepts(item)) { reportAudioFinished(item, 'narration_expired'); return; }
+  if (!item?.url) return;
+  if ((window.songDeck?.active || window.bilibiliDeck?.active || window.bilibiliNarration?.mediaActive) && !window.bilibiliNarration?.accepts(item)) { reportAudioFinished(item, 'song_playing'); return; }
+  if (currentAudioItem?.id === item.id) return;
+  if (currentAudioItem) finishAudio(currentAudioUrl, 'replaced', false);
+  if (!document.getElementById('autoplay').checked) {
+    reportAudioFinished(item, 'autoplay_disabled');
+    return;
+  }
+  ensureLipSyncAudio();
+  audioPlaying = false;
+  currentAudioUrl = item.url;
+  currentAudioItem = {...item, avatarStarted: false};
+  if (avatarSpeech.turnId === (item.turn_id ?? item.id)) cancelAvatarRelease();
+  speechEnvelope = null;
+  if (directBroadcastAudio) loadSpeechEnvelope(currentAudioItem);
+  audioPlayer.muted = false;
+  audioPlayer.volume = 1;
+  audioPlayer.src = item.url;
+  const protectInput = !window.bilibiliNarration?.accepts(item) && (voiceDraft || ((voiceActive || voiceStarting)
+    && (!continuousEl.checked || textInputEl.value.trim())));
+  if (protectInput) {
+    pausedForMic = pausedForMic || !playbackState.paused;
+    item.paused = true;
+    ws.send(JSON.stringify({type:'playback_pause', paused:true}));
+  } else suspendAutoListening();
+  if (item.paused) setInteraction('paused');
+  else playCurrentAudio();
+  updateAudioStatus();
+}
+
+async function loadSpeechEnvelope(item) {
+  try {
+    const response = await fetch(item.url);
+    if (!response.ok) return;
+    const buffer = await response.arrayBuffer(), view = new DataView(buffer);
+    const tag = offset => String.fromCharCode(...new Uint8Array(buffer, offset, 4));
+    if (buffer.byteLength < 12 || tag(0) !== 'RIFF' || tag(8) !== 'WAVE') return;
+    let channels = 0, rate = 0, bits = 0, format = 0, start = 0, size = 0;
+    for (let offset = 12; offset + 8 <= buffer.byteLength;) {
+      const length = view.getUint32(offset + 4, true), body = offset + 8;
+      if (body + length > buffer.byteLength) return;
+      if (tag(offset) === 'fmt ' && length >= 16) {
+        format = view.getUint16(body, true); channels = view.getUint16(body + 2, true);
+        rate = view.getUint32(body + 4, true); bits = view.getUint16(body + 14, true);
+      } else if (tag(offset) === 'data') { start = body; size = length; }
+      offset = body + length + (length % 2);
+    }
+    if (format !== 1 || bits !== 16 || !channels || !rate || !size) return;
+    const frames = Math.floor(size / (channels * 2));
+    const envelope = new Float32Array(Math.ceil(frames / rate * 50));
+    for (let i = 0; i < envelope.length; i++) {
+      const first = Math.floor(i * rate / 50), last = Math.min(frames, Math.floor((i + 1) * rate / 50));
+      let energy = 0;
+      for (let frame = first; frame < last; frame++) for (let channel = 0; channel < channels; channel++) {
+        const sample = view.getInt16(start + (frame * channels + channel) * 2, true) / 32768;
+        energy += sample * sample;
+      }
+      envelope[i] = Math.sqrt(energy / Math.max(1, (last - first) * channels));
+    }
+    if (currentAudioItem === item) speechEnvelope = envelope;
+  } catch (_) { /* Mouth analysis must never interrupt audible playback. */ }
+}
+
+function holdAudioForPermission() {
+  window.ConsoleUI?.audioBlocked();
+  if (!currentAudioItem) return;
+  const button = document.getElementById('broadcast-enable-audio');
+  button.hidden = false;
+  button.textContent = '声音未启动 · 点击启用并播放回复';
+  hideSpeechBubble();
+  setInteraction('error', undefined, '浏览器尚未允许声音，请点击启用并播放回复');
+}
+async function resumeAudioContext() {
+  ensureLipSyncAudio();
+  if (!audioContext || audioContext.state === 'running') return;
+  let timeout;
+  try {
+    await Promise.race([
+      audioContext.resume(),
+      new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('Audio permission required')), 1500); })
+    ]);
+    if (audioContext.state !== 'running') throw new Error('Audio context suspended');
+  } finally { clearTimeout(timeout); }
+}
+async function playCurrentAudio() {
+  const item = currentAudioItem;
+  if (!item) return;
+  try {
+    ensureLipSyncAudio();
+    if (audioAnalyser) await resumeAudioContext();
+  }
+  catch (_) {
+    if (currentAudioItem === item) holdAudioForPermission();
+    return;
+  }
+  if (currentAudioItem !== item) return;
+  audioPlayer.play().catch(error => {
+    if (currentAudioItem !== item) return;
+    if (error.name === 'NotAllowedError') holdAudioForPermission();
+    else finishAudio(item.url, 'error');
+  });
+}
+
+function reportAudioFinished(item, reason) {
+  if (ws?.readyState === WebSocket.OPEN && item?.id != null) {
+    try { ws.send(JSON.stringify({type: 'audio_finished', id: item.id, reason, seconds: item.playedSeconds || 0})); }
+    catch (_) { /* Socket close owns the failed playback; never replay receipts. */ }
+  }
+}
+
+function reportPlaybackProgress() {
+  if (currentAudioItem && audioPlaying && ws?.readyState === WebSocket.OPEN) {
+    try { ws.send(JSON.stringify({type: 'audio_progress', id: currentAudioItem.id,
+      seconds: audioPlayer.currentTime || 0})); }
+    catch (_) { /* A close racing this progress tick must not lose a draft. */ }
+  }
+}
+let lastProgressReport = 0;
+audioPlayer.addEventListener('timeupdate', () => {
+  syncAvatarClock();
+  const now = performance.now();
+  if (now - lastProgressReport >= 250) {
+    lastProgressReport = now;
+    reportPlaybackProgress();
+  }
+});
+
+function finishAudio(url, reason = 'ended', report = true) {
+  if (url !== currentAudioUrl) return;
+  const finishedItem = currentAudioItem;
+  window.ConsoleUI?.finished(finishedItem, reason);
+  if (finishedItem) finishedItem.playedSeconds = audioPlayer.currentTime || 0;
+  syncAvatarClock();
+  audioPlaying = false;
+  currentAudioUrl = null;
+  currentAudioItem = null;
+  audioPlayer.pause();
+  audioPlayer.removeAttribute('src');
+  finishAvatarSpeech(reason === 'ended', finishedItem);
+  subtitleEl.classList.remove('visible');
+  subtitleEl.textContent = '';
+  if (finishedItem?.id != null) {
+    delete replyInfo[finishedItem.turn_id ?? finishedItem.id];
+    delete eventInfo[finishedItem.id];
+  }
+  pruneChatHistory();
+  if (report) reportAudioFinished(finishedItem, reason);
+  if (reason === 'play_rejected' || reason === 'error') setInteraction('error', undefined, '语音未能播放，可以重试或继续文字聊天');
+  else setInteraction(playbackState.paused ? 'paused' : 'idle');
+  updateAudioStatus();
+  scheduleAutoListening();
+}
+
+function hideSpeechBubble() {
+  subtitleEl.classList.remove('visible');
+  subtitleEl.textContent = '';
+}
+function suspendSpeechPresentation() {
+  // A queued pause from a replaced source must not hide the new playing source.
+  if (!audioPlayer.paused && audioPlayer.readyState >= 3) return;
+  syncAvatarClock();
+  audioPlaying = false;
+  hideSpeechBubble();
+}
+function beginAudioAvatar() {
+  if (audioPlayer.paused || !currentAudioItem) return;
+  presence.thinking = false;
+  const item = currentAudioItem;
+  window.ConsoleUI?.playing(item);
+  audioPlaying = Boolean(item);
+  if (item) setInteraction('speaking');
+  updateAudioStatus();
+  subtitleEl.textContent = item.text || '';
+  subtitleEl.classList.toggle('visible', Boolean(item.text));
+  cancelAvatarRelease();
+  // 浏览器从缓冲中恢复时也会再次发 playing；同一段语音只触发一次动作。
+  if (!item || item.avatarStarted) return;
+  item.avatarStarted = true;
+  audioPlaying = true;
+  if (ws.readyState === WebSocket.OPEN && item.id != null) {
+    ws.send(JSON.stringify({type: 'audio_started', id: item.id}));
+  }
+  triggerAvatar(item.emotion || '平静', item.event || {}, item.actions || [], item);
+}
+
+function showLearning(state) {
+  if (!state?.enabled) {
+    learningStatusEl.textContent = '学习: 关闭';
+    return;
+  }
+  learningStatusEl.textContent = `学习: ${state.interactions}次经验 / ${state.viewers}位观众`;
+  learningStatusEl.title = [state.self_narrative, ...(state.guidelines || [])].join('\n');
+}
+
+function showPersonality(state) {
+  if (!state?.enabled) {
+    personalityStatusEl.textContent = '人格成长: 关闭';
+    personalityStatusEl.title = '';
+    return;
+  }
+  personalityStatusEl.textContent = `人格: ${state.profile || 'generic-v1'} · ${state.mood || '沉静'}`;
+  const labels = {
+    energy: '活力', warmth: '温暖', playfulness: '俏皮', initiative: '主动性',
+    directness: '直接度', emotional_openness: '情绪表达',
+    boundary_strength: '健康边界', resilience: '韧性',
+  };
+  const traits = Object.entries(state.traits || {})
+    .map(([key, value]) => `${labels[key] || key} ${Math.round(Number(value) * 100)}%`);
+  personalityStatusEl.title = [
+    traits.join(' · '),
+    `互动 ${state.turns || 0}轮 · 认识 ${state.relationships || 0}人 · 固化 ${state.snapshots || 0}次 · 待处理证据 ${state.pending_evidence || 0}条`,
+    state.last_change || '',
+  ].filter(Boolean).join('\n');
+}
+
+function showSelectiveMemory(state) {
+  if (!state?.enabled) {
+    memoryStatusEl.textContent = '记忆: 关闭';
+    memoryStatusEl.title = '';
+    return;
+  }
+  memoryStatusEl.textContent = `记忆: ${state.active || 0}条`;
+  const stats = state.stats || {};
+  memoryStatusEl.title = [
+    `核心 ${state.core || 0} · 观众事实 ${state.viewer_facts || 0} · 承诺 ${state.commitments || 0} · 共同经历 ${state.episodes || 0}`,
+    state.temporal_graph
+      ? `时序图 ${state.timeline_events || 0}个时间节点 · ${state.concept_nodes || 0}个概念 · ${state.graph_edges || 0}条边 · ${state.branches || 0}条支线`
+      : '时序图: 关闭',
+    `累计写入 ${stats.stored || 0} · 强化 ${stats.reinforced || 0} · 更新替代 ${stats.superseded || 0} · 过期 ${stats.expired || 0}`,
+    `弱联想召回 ${stats.associative_recalls || 0} · 旧记忆迁移 ${stats.graph_migrations || 0}`,
+    `已拒绝琐碎 ${stats.trivial_rejected || 0} · 敏感信息 ${stats.sensitive_rejected || 0} · 持久提示注入 ${stats.untrusted_rejected || 0}`,
+    state.llm_extraction ? '后台语义筛选: 开' : '后台语义筛选: 关',
+    state.error ? `最近错误: ${state.error}` : '',
+  ].filter(Boolean).join('\n');
+}
+
+function showDirector(state) {
+  if (!state?.enabled) {
+    directorStatusEl.textContent = '导演: 关闭';
+    directorControlEl.hidden = true;
+    return;
+  }
+  directorControlEl.hidden = false;
+  const mode = state.mode === 'manual' ? '锁定' : '自动';
+  const engagement = {high: '高活跃', medium: '有互动', low: '低活跃'}[state.engagement] || '';
+  const waiting = state.waiting_for_audience ? ' · 等待观众回答'
+    : state.question_pending ? ' · 互动问题待播放' : '';
+  directorStatusEl.textContent = `导演: ${state.phase_label} · ${mode} · ${engagement}${waiting}`;
+  directorStatusEl.title = [
+    state.topic ? `当前话题: ${state.topic}` : '当前话题: 等待形成',
+    `连续心情: ${state.mood}`,
+    `场面能量: ${Math.round((state.energy || 0) * 100)}%`,
+    `弹幕速度: ${state.chat_rate || 0}条/分钟，近期参与${state.active_now || 0}人`,
+    `活跃观众: ${(state.active_viewers || []).join('、') || '暂无'}`,
+    `互动成功/无人接话: ${state.successful_interactions || 0}/${state.missed_interactions || 0}`,
+    `已主持: ${state.turns}轮`,
+  ].join('\n');
+  directorPhaseEl.value = state.mode === 'manual' ? state.phase : 'auto';
+}
+
+function showGameAgent(state) {
+  const enabled = Boolean(state?.enabled);
+  gameObserveLabelEl.hidden = !enabled;
+  gameControlLabelEl.hidden = !enabled;
+  gameEstopEl.hidden = !enabled;
+  gameResetEl.hidden = !enabled || !state.emergency_latched;
+  gameAgentPanelEl.hidden = !enabled;
+  if (!enabled) {
+    gameAgentStatusEl.textContent = '';
+    return;
+  }
+  gameObserveEl.checked = Boolean(state.observation_enabled);
+  gameControlEl.checked = Boolean(state.control_enabled);
+  gameControlEl.disabled = Boolean(state.observe_only || state.emergency_latched || !state.observation_enabled);
+  const labels = {
+    disabled: '已暂停', waiting_window: '等待窗口', observing: '观察中',
+    controlling: '控制中', emergency_stopped: '已急停', error: '异常',
+  };
+  const label = labels[state.status] || state.status || '未知';
+  gameAgentStatusEl.textContent = `游戏AI: ${label}${state.observe_only ? ' · 只观察' : ''}`;
+  gameAgentStatusEl.style.color = state.emergency_latched || state.status === 'error' ? '#ff7676'
+    : state.control_enabled ? '#70c995' : '#d6b36a';
+  gameEstopEl.textContent = `急停 ${state.emergency_key || 'F12'}`;
+
+  const p = state.perception || {};
+  const planner = state.planner || {};
+  const action = state.last_action || {};
+  const decision = state.decision || {};
+  gameAgentDetailsEl.textContent = [
+    `窗口: ${state.window || '未配置'}`,
+    `策略: ${state.profile || '-'} / ${planner.strategy || '-'}`,
+    `识别: ${p.state || '-'} | 生命: ${p.health == null ? '-' : Math.round(p.health * 100) + '%'} | 运动: ${p.motion ?? '-'}`,
+    `OCR: ${p.ocr_text || (state.ocr_available ? '未识别到文字' : '不可用')}`,
+    `长期目标: ${planner.goal || '-'}`,
+    `当前任务: ${planner.current_task || '-'} (${(planner.task_progress || [0, 0]).join('/')})`,
+    `当前计划: ${(planner.plan || []).join(' → ') || '-'}`,
+    `下一动作: ${decision.action?.kind || '-'} ${decision.action?.key || decision.action?.button || ''} (${decision.rationale || '-'})`,
+    `上次执行: ${action.kind ? `${action.kind} ${action.key || action.button || ''} · ${action.success ? '成功' : '失败'}` : '-'}`,
+    `安全边界: ${state.observe_only ? '配置只观察' : '白名单有限控制'} · 前台窗口校验 · ${state.emergency_key || 'F12'} 急停`,
+    state.error ? `错误: ${state.error}` : '',
+    state.ocr_error && !state.ocr_available ? `OCR降级: ${state.ocr_error}` : '',
+    state.emergency_reason ? `急停原因: ${state.emergency_reason}` : '',
+  ].filter(Boolean).join('\n');
+
+  if (state.has_frame && state.frame_count !== lastGameFrameCount) {
+    lastGameFrameCount = state.frame_count;
+    gameFrameEl.src = `/game-frame.jpg?v=${state.frame_count}`;
+  }
+}
+
+function showPlayback(state) {
+  playbackState = {...playbackState, ...(state || {})};
+  updateAudioStatus();
+}
+
+function showMetrics(state) {
+  const latency = state?.latency || {};
+  const seconds = (key, stat = 'latest') => {
+    const value = Number(latency[key]?.[stat] || 0);
+    return value > 0 ? `${value.toFixed(2)}s` : '-';
+  };
+  runtimeStatusEl.textContent = `延迟 首字 ${seconds('llm_ttft')} · 首句 ${seconds('first_sentence')} · 合成 ${seconds('tts_synthesis')} · 开口 ${seconds('audio_start')}`;
+  runtimeStatusEl.title = `最近 ${state?.replies || 0} 次回复；搜索 ${seconds('search')}，TTS排队 ${seconds('tts_queue')}，播放等待 ${seconds('playback_wait')}；P95 合成 ${seconds('tts_synthesis', 'p95')}，开口 ${seconds('audio_start', 'p95')}；中断 ${state?.cancelled || 0}，错误 ${state?.errors || 0}`;
+}
+
+audioPlayer.addEventListener('ended', () => finishAudio(currentAudioUrl, 'ended'));
+audioPlayer.addEventListener('error', () => finishAudio(currentAudioUrl, 'error'));
+audioPlayer.addEventListener('playing', beginAudioAvatar);
+audioPlayer.addEventListener('pause', suspendSpeechPresentation);
+audioPlayer.addEventListener('waiting', suspendSpeechPresentation);
+audioPlayer.addEventListener('emptied', suspendSpeechPresentation);
+
+function resetSocketPresentation() {
+  // The server retires this socket's playback. Do not keep an orphaned clip
+  // audible or send its delayed delivery receipts through the next socket.
+  continuousEl.checked = false;
+  generationActive = false;
+  synthesisTurns.clear();
+  pausedForMic = false;
+  if (currentAudioItem) finishAudio(currentAudioUrl, 'disconnected', false);
+  else finishAvatarSpeech(false);
+  // Backend turn IDs may restart at one after reconnecting.
+  conversationGestures.resetSession();
+  speechPerformance.resetSession();
+  speechCues.resetSession();
+  presence.resetSession();
+  stopAllMedia();
+  document.getElementById('broadcast-enable-audio').hidden = true;
+  for (const row of Object.values(rows)) row.classList.remove('thinking');
+  for (const row of Object.values(partialReplies)) row.classList.remove('thinking');
+  for (const collection of [partialReplies, eventInfo, replyInfo]) {
+    for (const key of Object.keys(collection)) delete collection[key];
+  }
+  editableVoiceTurn = null;
+  document.querySelectorAll('.edit-transcript').forEach(button => button.disabled = true);
+  playbackState = {state:'idle', current_id:null, queued:0, paused:false};
+  pruneChatHistory();
+  updateAudioStatus();
+}
+
+function restoreSocketInteraction(state = {}, conversation = {}) {
+  // A restarted backend begins turn IDs at one again.
+  interaction.turn = 0;
+  generationActive = Boolean(conversation.generating);
+  synthesisTurns.clear();
+  for (const turn of conversation.synthesizing_turn_ids || []) synthesisTurns.add(turn);
+  const activeTurn = Math.max(0, ...(conversation.generating_turn_ids || []),
+    ...(conversation.synthesizing_turn_ids || []), Number(state.current_turn_id) || 0);
+  const phase = voiceDraft ? 'review' : state.paused ? 'paused'
+    : audioPlaying || state.state === 'playing' ? 'speaking'
+    : state.current_id != null || state.queued ? 'ready'
+    : synthesisTurns.size ? 'synthesizing' : generationActive ? 'thinking' : 'idle';
+  presence.thinking = phase === 'thinking';
+  setInteraction(phase, activeTurn);
+}
+
+function connectSocket() {
+clearTimeout(reconnectTimer);
+reconnectProbe?.abort();
+reconnectProbe = null;
+roomBusy = false;
+const socketQuery = new URLSearchParams();
+if (document.documentElement.classList.contains('broadcast-display')) socketQuery.set('display','1');
+if (new URLSearchParams(location.search).get('output') === 'live') socketQuery.set('output','live');
+ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws?${socketQuery}`);
+const socket = ws;
+ws.onopen = () => { if (ws === socket) statusEl.textContent = '正在进入对话…'; };
+ws.onclose = async () => {
+  if (ws !== socket) return;
+  window.ConsoleUI?.disconnected();
+  resetSocketPresentation();
+  continuousEl.checked = false;
+  clearTimeout(autoSendTimer);
+  clearTimeout(voiceRestartTimer);
+  if (voiceRecognition && (voiceActive || voiceStarting)) voiceRecognition.abort();
+  const notice = roomBusy ? '有人正在测试，请关闭其他测试页面；空闲后会自动连接' : '连接中断，正在自动重连…';
+  setInteraction('error', undefined, notice);
+  statusEl.textContent = notice;
+  presence.listen(false);
+  presence.thinking = false;
+  // Retry independently: a stalled HTTP probe must not stall the WebSocket.
+  // Starting the next connection also cancels this probe and its response body.
+  reconnectTimer = setTimeout(() => {
+    if (ws === socket) connectSocket();
+  }, roomBusy ? 10000 : 5000);
+  const probe = new AbortController();
+  reconnectProbe = probe;
+  try {
+    const response = await fetch('/', {cache:'no-store', signal:probe.signal});
+    if (ws !== socket) return;
+    if (response.status === 403) {
+      clearTimeout(reconnectTimer);
+      statusEl.textContent = '邀请已过期，请重新打开完整邀请链接';
+      setInteraction('error', undefined, statusEl.textContent);
+      return;
+    }
+  } catch (_) {} finally {
+    probe.abort();
+    if (reconnectProbe === probe) reconnectProbe = null;
+  }
+};
+ws.onmessage = (m) => {
+  if (ws !== socket) return;
+  const d = JSON.parse(m.data);
+  window.ConsoleUI?.message(d);
+  if (d.type === 'room_busy') { roomBusy = true; return; }
+  if (d.type === 'broadcast_notice') {
+    clearTimeout(broadcastNoticeTimer);
+    broadcastNoticeEl.textContent = String(d.text || '').slice(0,160);
+    broadcastNoticeEl.hidden = !d.text;
+    broadcastNoticeTimer = setTimeout(()=>{broadcastNoticeEl.hidden=true;},Math.min(60,Math.max(1,Number(d.duration_sec)||12))*1000);
+    return;
+  }
+  if (d.type === 'song_request') {
+    if (window.songDeck?.request(d.song)) window.bilibiliDeck?.stop();
+    return;
+  }
+  if (d.type === 'media_focus') {
+    stopAllMedia();
+    suspendMediaMicrophone();
+    return;
+  }
+  if (d.type === 'bilibili_request') {
+    window.songDeck?.stop();
+    window.bilibiliDeck?.request(d.query);
+    return;
+  }
+  if (d.type === 'bilibili_narration_done') {
+    window.bilibiliNarration?.complete(d);
+    return;
+  }
+  if (d.type === 'bilibili_playback_state') {
+    if (window.bilibiliNarration) window.bilibiliNarration.mediaActive = d.active === true;
+    if (d.active === true) suspendMediaMicrophone();
+    return;
+  }
+  if (d.type === 'bilibili_narration_end') {
+    window.bilibiliNarration?.end(d.request_id);
+    return;
+  }
+  if (d.type === 'song_control') {
+    if (d.action === 'stop') stopAllMedia();
+    else if (d.action === 'next') window.songDeck?.next();
+    else if (d.action === 'open') document.getElementById('song-panel').hidden = false;
+    return;
+  }
+  if (d.type === 'music_status') {
+    if (interaction.phase === 'thinking' && !currentAudioItem) setInteraction('idle');
+    document.getElementById('music-notice').textContent = d.text;
+    document.getElementById('song-panel').hidden = false;
+    window.refreshMusicRequests?.();
+    return;
+  }
+  if (d.type === 'hello') {
+    window.companionChat?.setAccess(!d.public_test && !d.local_test);
+    latestCoatTurn = -1;
+    if (window.bilibiliNarration) {
+      window.bilibiliNarration.directAvailable = d.bilibili_direct === true;
+      window.bilibiliNarration.reviewAvailable = d.bilibili_review === true;
+      window.bilibiliNarration.available = d.bilibili_narration === true && Number(d.music_protocol || 0) >= 6;
+      window.bilibiliNarration.localAvailable = d.song_narration === true;
+      window.bilibiliNarration.mediaActive = d.bilibili_active === true;
+      window.bilibiliDeck?.refreshReview();
+    }
+    if (d.public_test) {
+      document.getElementById('polls-link').hidden = true;
+      document.getElementById('shows-link').hidden = true;
+      document.getElementById('questions-link').hidden = true;
+      document.getElementById('runtime-link').hidden = true;
+      document.getElementById('qq-link').hidden = true;
+      document.getElementById('feature-controls').hidden = true;
+      document.getElementById('companion-user').disabled = true;
+      document.getElementById('focus-mode').hidden = true;
+      document.getElementById('companion-shell').classList.add('friend-test');
+    }
+    ttsBackend = d.tts;
+    statusEl.textContent = d.public_test ? '朋友测试版 · 已连接 · 可以开始聊天了' : d.local_test ? '离线测试 · 已连接' : '已连接 · 可以开始对话';
+    sourceStatusEl.textContent = `真实B站弹幕: ${d.bilibili ? '开启' : '关闭（在 settings.yaml 开启）'}`;
+    showLearning(d.learning);
+    showPersonality(d.personality);
+    showSelectiveMemory(d.selective_memory);
+    showDirector(d.director);
+    showPlayback(d.playback);
+    restoreSocketInteraction(d.playback, d.conversation_state);
+    showMetrics(d.metrics);
+    showGameAgent(d.game_agent);
+    mockLabelEl.hidden = !d.mock_danmaku;
+    mockDanmakuEl.checked = d.mock_danmaku_enabled;
+    mockGameLabelEl.hidden = !d.mock_game;
+    mockGameEl.checked = d.mock_game_enabled;
+    showManualMode(d.manual_mode);
+    window.startInitialBilibili?.();
+  } else if (d.type === 'mock_danmaku') {
+    mockDanmakuEl.checked = d.enabled;
+  } else if (d.type === 'mock_game') {
+    mockGameEl.checked = d.enabled;
+  } else if (d.type === 'manual_mode') {
+    showManualMode(d.enabled);
+    mockDanmakuEl.checked = d.mock_danmaku_enabled;
+    mockGameEl.checked = d.mock_game_enabled;
+  } else if (d.type === 'learning') {
+    showLearning(d);
+  } else if (d.type === 'personality') {
+    showPersonality(d);
+  } else if (d.type === 'selective_memory') {
+    showSelectiveMemory(d);
+  } else if (d.type === 'director') {
+    showDirector(d);
+  } else if (d.type === 'playback') {
+    showPlayback(d);
+    pauseAudioEl.textContent = d.paused ? '继续播放' : '暂停';
+    if (d.paused && !voiceActive && !voiceDraft) setInteraction('paused');
+    else if (!d.current_id && !d.queued && !voiceDraft && !voiceActive && ['speaking','paused','ready'].includes(interaction.phase)) setInteraction('idle');
+    scheduleAutoListening();
+  } else if (d.type === 'metrics') {
+    showMetrics(d);
+  } else if (d.type === 'game_agent') {
+    showGameAgent(d);
+  } else if (d.type === 'event') {
+    if (d.kind === 'chat') { faceMotion.clearAfterglow(); speechCues.clearFocus(); }
+    const followLatest = chatNearLatest();
+    applyCoatCommand(d.text, d.id);
+    if (['voice','companion'].includes(d.source) && d.kind === 'chat') {
+      document.querySelectorAll('.edit-transcript').forEach(button => button.disabled = true);
+      editableVoiceTurn = d.source === 'voice' ? d.id : null;
+      if (d.corrects && rows[d.corrects]) rows[d.corrects].textContent = '这条语音转写已更正';
+    }
+    eventInfo[d.id] = d;
+    const row = document.createElement('div');
+    row.className = 'row user-message';
+    const kindClass = ['chat','gift','death','find','ambient','idle','interrupt'].includes(d.kind) ? d.kind : 'ambient';
+    row.innerHTML = `<span class="tag ${kindClass}">${escapeHtml(d.kind)}</span><span class="meta">#${escapeHtml(d.id)} ${escapeHtml(d.user || d.source)}</span>${escapeHtml(d.text)}`;
+    eventsEl.appendChild(row);
+    rows[d.id] = row;
+    rememberChatRow(row, d.id);
+    window.QuestionPin?.attach(row, d);
+    document.getElementById('chat-empty').hidden = true;
+    document.getElementById('avatar').classList.add('conversation-started');
+    if (d.source === 'voice') {
+      const actionsMenu = document.createElement('details');
+      actionsMenu.className = 'message-actions';
+      const menuTitle = document.createElement('summary');
+      menuTitle.textContent = '消息操作';
+      actionsMenu.appendChild(menuTitle);
+      row.appendChild(actionsMenu);
+      const edit = document.createElement('button');
+      edit.className = 'edit-transcript';
+      edit.textContent = '修改识别';
+      edit.onclick = () => {
+        clearTimeout(autoSendTimer);
+        suspendAutoListening();
+        reportPlaybackProgress();
+        ws.send(JSON.stringify({type:'conversation_interrupt'}));
+        voiceDraft = true;
+        correctingId = d.id;
+        textInputEl.value = d.text;
+        document.getElementById('companion-user').value = d.user || '你';
+        reviewEl.hidden = false;
+        reviewHintEl.textContent = '修改这条识别结果，再确认发送；旧回答已停止。';
+        setInteraction('review');
+        textInputEl.focus();
+      };
+      actionsMenu.appendChild(edit);
+      const undo = document.createElement('button');
+      undo.className = 'edit-transcript';
+      undo.textContent = '撤销这条语音';
+      undo.onclick = () => {
+        if (ws.readyState !== WebSocket.OPEN) return;
+        continuousEl.checked = false;
+        clearTimeout(voiceRestartTimer);
+        clearTimeout(autoSendTimer);
+        if (voiceRecognition && (voiceActive || voiceStarting)) voiceRecognition.abort();
+        reportPlaybackProgress();
+        ws.send(JSON.stringify({type:'inject', source:'voice', kind:'chat',
+          user:d.user || '你', text:d.text, corrects:d.id, retract:true}));
+      };
+      actionsMenu.appendChild(undo);
+      const confirmMemory = document.createElement('button');
+      confirmMemory.className = 'edit-transcript';
+      confirmMemory.textContent = '确认保存记忆';
+      confirmMemory.hidden = document.getElementById('companion-shell').classList.contains('friend-test');
+      confirmMemory.title = '按筛选规则保存，关闭这条语音的纠错和撤销入口。';
+      confirmMemory.onclick = () => {
+        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type:'inject',
+          source:'voice', kind:'chat', user:d.user || '你', text:d.text,
+          corrects:d.id, confirm_memory:true}));
+      };
+      actionsMenu.appendChild(confirmMemory);
+    }
+    followChatTimeline(followLatest);
+  } else if (d.type === 'companion_meme') {
+    const followLatest = chatNearLatest();
+    const row = window.companionChat?.renderMeme(d);
+    if (row) { rememberChatRow(row, d.turn_id); followChatTimeline(followLatest); }
+  } else if (d.type === 'memory_list') {
+    renderMemories(d);
+  } else if (d.type === 'memory_confirmation') {
+    document.getElementById('memory-feedback').textContent = d.text;
+    if (d.ok && rows[d.id]) {
+      rows[d.id].querySelectorAll?.('.edit-transcript').forEach(button => button.disabled = true);
+      const receipt = document.createElement('span');
+      receipt.textContent = ' · ' + d.text;
+      rows[d.id].appendChild(receipt);
+    }
+    if (d.ok && editableVoiceTurn === d.id) editableVoiceTurn = null;
+    if (!d.ok) setInteraction('error', undefined, d.text);
+  } else if (d.type === 'voice_retracted') {
+    if (rows[d.id]) rows[d.id].textContent = '这条语音已撤销';
+    if (editableVoiceTurn === d.id) editableVoiceTurn = null;
+    generationActive = false;
+    lastSubmitted = null;
+    if (correctingId === d.id) cancelVoiceDraft();
+    setInteraction('idle');
+  } else if (d.type === 'thinking') {
+    generationActive = true;
+    setInteraction('thinking', d.id);
+    suspendAutoListening();
+    presence.thinking = true;
+    rows[d.id]?.classList.add('thinking');
+  } else if (d.type === 'backchannel') {
+    presence.acknowledge(performance.now());
+    if (!currentAudioItem) setInteraction('idle');
+    scheduleAutoListening();
+  } else if (d.type === 'speech_stage') {
+    if (d.stage === 'synthesizing') synthesisTurns.add(d.turn_id);
+    if (d.stage === 'drained') {
+      synthesisTurns.delete(d.turn_id);
+      scheduleAutoListening();
+    } else if (!audioPlaying && !playbackState.paused) setInteraction(d.stage, d.turn_id);
+  } else if (d.type === 'correction_rejected') {
+    setInteraction('error', undefined, d.text);
+  } else if (d.type === 'reply_partial') {
+    const followLatest = chatNearLatest();
+    const added = !partialReplies[d.id];
+    let r = partialReplies[d.id];
+    if (!r) {
+      r = document.createElement('div');
+      r.className = 'row reply thinking';
+      repliesEl.appendChild(r);
+      partialReplies[d.id] = r;
+      rememberChatRow(r, d.id);
+    }
+    const actions = Array.isArray(d.actions) && d.actions.length
+      ? `<span class="actions">动作: ${escapeHtml(d.actions.join('、'))}</span>` : '';
+    r.innerHTML = `<span class="emo">[${escapeHtml(d.emotion || '平静')}]</span>${escapeHtml(d.text || '')}${actions}<span class="meta">#${escapeHtml(d.id)} · 流式生成 ${Number(d.elapsed || 0).toFixed(1)}s</span>`;
+    followChatTimeline(followLatest, added);
+  } else if (d.type === 'reply') {
+    if (d.mode === 'media' && d.media_narration_id) window.bilibiliNarration?.observe(d.media_narration_id);
+    const followLatest = chatNearLatest();
+    const added = !partialReplies[d.id];
+    if (d.id >= interaction.turn) generationActive = false;
+    if (ttsBackend === 'mock') { setInteraction('idle', d.id); scheduleAutoListening(); }
+    presence.thinking = false;
+    const ev = rows[d.id];
+    if (ev) { ev.classList.remove('thinking'); ev.classList.add('replied'); }
+    const r = partialReplies[d.id] || document.createElement('div');
+    r.className = 'row reply';
+    const localTest = d.mode === 'local_test';
+    const mediaReply = d.mode === 'media';
+    const degraded = d.mode !== 'llm' && !localTest && !mediaReply;
+    const mode = localTest ? '<span class="meta">离线脚本</span>' : degraded
+      ? `<span class="fallback" title="${escapeHtml(d.error || '')}">${d.mode === 'safety' ? '安全回复' : '后备回复'}</span>`
+      : '';
+    const actions = Array.isArray(d.actions) && d.actions.length
+      ? `<span class="actions">动作: ${escapeHtml(d.actions.join('、'))}</span>` : '';
+    const phase = d.director_phase ? ` · ${escapeHtml(d.director_phase)}` : '';
+    r.innerHTML = `<span class="emo">[${escapeHtml(d.emotion)}]</span>${escapeHtml(d.text)}${actions}${mode}<span class="meta">#${escapeHtml(d.id)} · ${mediaReply ? '点歌回应' : localTest ? '离线测试' : degraded ? '降级' : 'LLM'}${phase}${mediaReply ? '' : ` · 首字 ${Number(d.ttft || 0).toFixed(2)}s · 完成 ${Number(d.latency || 0).toFixed(2)}s`}</span>`;
+    if (!partialReplies[d.id]) {
+      repliesEl.appendChild(r);
+      rememberChatRow(r, d.id);
+    }
+    delete partialReplies[d.id];
+    followChatTimeline(followLatest, added);
+    // 回复先显示，但动作要等对应音频实际播放，避免 TTS 合成期间皮套提前动作。
+    replyInfo[d.id] = {
+      emotion: d.emotion,
+      actions: d.actions || [],
+      event: eventInfo[d.id] || {},
+    };
+  } else if (d.type === 'audio') {
+    clearTimeout(broadcastNoticeTimer);
+    broadcastNoticeEl.hidden = true;
+    const reply = replyInfo[d.turn_id ?? d.id] || {};
+    receiveAudio({
+      id: d.id,
+      turn_id: d.turn_id,
+      segment_index: d.segment_index,
+      paused: d.paused,
+      url: d.url,
+      text: d.text || '',
+      emotion: d.emotion || reply.emotion,
+      actions: d.actions || reply.actions || [],
+      event: d.event || reply.event || eventInfo[d.id] || {},
+      avatarStarted: false,
+    });
+  } else if (d.type === 'reply_cancelled') {
+    if (!currentAudioItem && d.id === avatarSpeech.turnId) finishAvatarSpeech(false);
+    if (d.id >= interaction.turn) generationActive = false;
+    setInteraction('idle', d.id);
+    presence.thinking = false;
+    const r = partialReplies[d.id];
+    if (r) {
+      r.classList.remove('thinking');
+      r.innerHTML += `<span class="fallback">已被高优先级事件中断</span>`;
+      delete partialReplies[d.id];
+    }
+    rows[d.id]?.classList.remove('thinking');
+  } else if (d.type === 'tts_error') {
+    setInteraction('error', d.turn_id, '语音合成失败，可以重试；文字回复仍可阅读');
+    presence.thinking = false;
+    audioStatusEl.textContent = `语音合成失败 · 回复 #${d.turn_id}`;
+    audioStatusEl.title = d.error || '';
+  } else if (d.type === 'reply_error') {
+    if (d.id >= interaction.turn) generationActive = false;
+    setInteraction('error', d.id, '回复失败，可以修改消息后重试');
+    presence.thinking = false;
+    rows[d.id]?.classList.remove('thinking');
+    partialReplies[d.id]?.classList.remove('thinking');
+    delete partialReplies[d.id];
+  } else if (d.type === 'audio_control') {
+    // A clear for a specific speech clip is also the acknowledgement of
+    // beforePlay's interruption. It must not immediately stop the new song.
+    if (d.action === 'clear' && d.id == null) stopAllMedia();
+    if (currentAudioItem && (d.id == null || currentAudioItem.id === d.id)) {
+      if (d.action === 'pause') {
+        reportPlaybackProgress();
+        audioPlayer.pause();
+        audioPlaying = false;
+        setInteraction('paused');
+      } else if (d.action === 'resume') {
+        suspendAutoListening();
+        playCurrentAudio();
+      } else finishAudio(currentAudioUrl, d.action || 'stopped', false);
+    } else if (!currentAudioItem && !['pause','resume'].includes(d.action)
+        && (d.id == null || d.id === avatarSpeech.audioId)) {
+      finishAvatarSpeech(false);
+    }
+  }
+  pruneChatHistory();
+};
+
+}
+connectSocket();
+
+mockDanmakuEl.onchange = () => {
+  if (ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({type: 'set_mock_danmaku', enabled: mockDanmakuEl.checked}));
+};
+
+mockGameEl.onchange = () => {
+  if (ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({type: 'set_mock_game', enabled: mockGameEl.checked}));
+};
+
+manualModeEl.onchange = () => {
+  if (ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({type: 'set_manual_mode', enabled: manualModeEl.checked}));
+};
+
+gameObserveEl.onchange = () => {
+  if (ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({type: 'set_game_observation', enabled: gameObserveEl.checked}));
+};
+
+gameControlEl.onchange = () => {
+  if (ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({type: 'set_game_control', enabled: gameControlEl.checked}));
+};
+
+gameEstopEl.onclick = () => {
+  if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type: 'game_emergency_stop'}));
+};
+
+gameResetEl.onclick = () => {
+  if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type: 'game_reset_emergency'}));
+};
+
+directorPhaseEl.onchange = () => {
+  if (ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({type: 'set_director_phase', phase: directorPhaseEl.value}));
+};
+
+autoplayEl.onchange = () => {
+  if (!autoplayEl.checked && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({type: 'playback_clear'}));
+  }
+};
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;',
+  })[character]);
+}
+
+function sendCompanion(extra = {}) {
+  if (!String(extra.text ?? textInputEl.value).trim()) return false;
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    setInteraction('error', undefined, '尚未连接，消息已保留。连接恢复后请再发送。');
+    return false;
+  }
+  if (voiceRecognition && (voiceActive || voiceStarting)) {
+    voiceRecognition.editing = true;
+    voiceRecognition.abort();
+  }
+  reportPlaybackProgress();
+  const p = {
+    type: 'inject',
+    source: voiceDraft ? 'voice' : 'companion',
+    ...(voiceDraft && voiceRecognition?.reviewStarted != null ? {voice_review_ms: Math.max(0, performance.now() - voiceRecognition.reviewStarted)} : {}),
+    resume_playback: pausedForMic,
+    ...(correctingId === null ? {} : {corrects: correctingId}),
+    kind: 'chat',
+    user: document.getElementById('companion-user').value || '你',
+    text: textInputEl.value,
+    ...extra,
+  };
+  const mediaCommand = typeof SongDeck !== 'undefined' ? SongDeck.parseCommand?.(p.text) : null;
+  // A new local request owns the next selection even while its catalog loads.
+  // Cancel an older remote lookup now, before it can return and steal playback.
+  if (mediaCommand?.mode === 'local') window.bilibiliDeck?.stop();
+  if (window.songDeck?.command(p.text)) {
+    textInputEl.value = '';
+    clearTimeout(autoSendTimer);
+    voiceDraft = false;
+    correctingId = null;
+    reviewEl.hidden = true;
+    pausedForMic = false;
+    setInteraction('idle');
+    return;
+  }
+  try {
+    stopAllMedia(true);
+    ws.send(JSON.stringify(p));
+  }
+  catch (_) {
+    setInteraction('error', undefined, '发送没有成功，消息已保留，请连接恢复后重试。');
+    return false;
+  }
+  faceMotion.clearAfterglow();
+  speechCues.clearFocus();
+  clearTimeout(autoSendTimer);
+  clearTimeout(voiceRestartTimer);
+  lastSubmitted = {...p};
+  pausedForMic = false;
+  voiceDraft = false;
+  correctingId = null;
+  reviewEl.hidden = true;
+  setInteraction('thinking');
+  textInputEl.value = '';
+  return true;
+}
+
+function manageMemory(action = 'list', extra = {}) {
+  if (ws.readyState !== WebSocket.OPEN) {
+    document.getElementById('memory-feedback').textContent = '连接已断开，请刷新页面。';
+    return;
+  }
+  ws.send(JSON.stringify({type:'memory_manage', action, ...extra}));
+}
+document.getElementById('refresh-memories').onclick = () => manageMemory();
+let memoryCache = null;
+const memoryTypeLabels = {core:'核心记忆',stable_fact:'稳定事实',temporary_state:'临时状态',plan:'近期计划',episode:'共同经历',commitment:'待办承诺'};
+document.getElementById('memory-search').oninput = () => { if (memoryCache) renderMemories(memoryCache); };
+document.getElementById('memory-filter').onchange = () => { if (memoryCache) renderMemories(memoryCache); };
+document.getElementById('memory-panel').ontoggle = event => {
+  if (event.target.open) manageMemory();
+};
+function renderMemories(data) {
+  memoryCache = data;
+  const search = document.getElementById('memory-search').value.trim().toLocaleLowerCase();
+  const filter = document.getElementById('memory-filter').value || 'active';
+  const selected = data.memories.filter(item => {
+    const matchingStatus = filter === 'all' || (filter === 'history' ? item.status !== 'active'
+      : item.status === 'active' && (filter !== 'temporary' || item.retention_type === 'temporary_state' || item.scope === 'temporary'));
+    return matchingStatus && JSON.stringify([item.summary,item.subject,item.original_source || item.source]).toLocaleLowerCase().includes(search);
+  });
+  const list = document.getElementById('memory-list');
+  list.innerHTML = '';
+  document.getElementById('memory-feedback').textContent = data.ok
+    ? `${data.action === 'edit' ? '修改已保存 · ' : data.action === 'forget' ? '已忘记 · ' : ''}显示 ${selected.length} / ${data.memories.length} 条`
+    : '操作未完成：记忆可能已失效，或修改内容不符合存储规则。';
+  if (!selected.length) {
+    const empty = document.createElement('p');
+    empty.textContent = '没有符合条件的记忆。试试更换关键词或筛选条件。';
+    list.appendChild(empty);
+  }
+  for (const item of selected) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const meta = document.createElement('p');
+    const source = item.original_source || item.source || {};
+    const status = {active:'使用中',expired:'已过期',forgotten:'已忘记',corrected:'已纠错',superseded:'已更新'};
+    const date = value => value ? new Date(value * 1000).toLocaleString() : '未设置';
+    const legacyType = item.scope === 'temporary' ? 'temporary_state' : {core:'core',viewer_fact:'stable_fact',shared_episode:'episode',commitment:'commitment'}[item.kind];
+    const typeLabel = memoryTypeLabels[item.retention_type] || memoryTypeLabels[legacyType] || '长期记忆';
+    const recalled = Number.isFinite(item.access_count) ? Math.max(0, Math.trunc(item.access_count)) : 0;
+    meta.textContent = `#${item.id} · ${item.subject} · ${status[item.status] || item.status}`
+      + ` · ${typeLabel}${item.visibility === 'private' ? ' · 私有记忆' : ''}`
+      + ` · 来源：${source.user || source.source || '人工'} / ${date(source.event_ts)}`
+      + ` · 有效期至：${date(item.expires_at)}`
+      + ` · 最后确认：${item.last_confirmed_at ? date(item.last_confirmed_at) : '未记录'}`
+      + ` · 召回 ${recalled} 次`;
+    row.appendChild(meta);
+    const input = document.createElement('textarea');
+    const editable = item.status === 'active' && !(item.slot || '').startsWith('core:config:');
+    if ((item.slot || '').startsWith('core:config:')) meta.textContent += ' · 配置核心记忆，请在配置文件修改';
+    input.value = item.summary;
+    input.maxLength = 180;
+    input.style.width = '100%';
+    input.disabled = !editable;
+    row.appendChild(input);
+    if (editable) {
+      const save = document.createElement('button');
+      save.textContent = '保存修改';
+      save.onclick = () => manageMemory('edit', {id:item.id, text:input.value});
+      const forget = document.createElement('button');
+      forget.textContent = '忘记';
+      forget.onclick = () => manageMemory('forget', {id:item.id});
+      row.appendChild(save);
+      row.appendChild(forget);
+    }
+    list.appendChild(row);
+  }
+}
+
+function injectAdvanced(extra = {}) {
+  const p = {
+    type: 'inject',
+    source: document.getElementById('source').value,
+    kind: document.getElementById('kind').value,
+    user: document.getElementById('user').value,
+    text: document.getElementById('advanced-text').value,
+    ...extra,
+  };
+  if (!String(p.text || '').trim()) return false;
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    document.getElementById('advanced-text').value = p.text;
+    setInteraction('error', undefined, '尚未连接，测试消息已保留。连接恢复后请再发送。');
+    return false;
+  }
+  try { ws.send(JSON.stringify(p)); }
+  catch (_) {
+    document.getElementById('advanced-text').value = p.text;
+    setInteraction('error', undefined, '测试消息未发送，内容已保留，请稍后重试。');
+    return false;
+  }
+  document.getElementById('advanced-text').value = '';
+  return true;
+}
+
+document.getElementById('send').onclick = () => sendCompanion();
+textInputEl.onkeydown = (e) => {
+  if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229 && !e.shiftKey) {
+    e.preventDefault();
+    sendCompanion();
+  }
+};
+document.getElementById('advanced-send').onclick = () => injectAdvanced();
+document.getElementById('advanced-text').onkeydown = (e) => {
+  if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229 && !e.shiftKey) {
+    e.preventDefault();
+    injectAdvanced();
+  }
+};
+document.querySelectorAll('[data-preset]').forEach(b => {
+  b.onclick = () => injectAdvanced(JSON.parse(b.dataset.preset));
+});
+
+// 浏览器负责语音转文字，后端仍把结果当普通事件处理；仅 localhost/HTTPS 可使用麦克风。
+let focusedCompanion = false;
+function toggleFocusMode(force) {
+  focusedCompanion = typeof force === 'boolean' ? force : !focusedCompanion;
+  document.getElementById('companion-shell').classList.toggle('focus-mode', focusedCompanion);
+  document.getElementById('events').hidden = focusedCompanion;
+  document.getElementById('feature-controls').hidden = focusedCompanion;
+  const button = document.getElementById('focus-mode');
+  button.setAttribute('aria-pressed', String(focusedCompanion));
+  button.textContent = focusedCompanion ? '返回完整界面' : '专注陪伴';
+  window.dispatchEvent?.(new Event('resize'));
+}
+document.getElementById('focus-mode').onclick = () => toggleFocusMode();
+document.addEventListener?.('keydown', event => {
+  if (event.key === 'Escape' && focusedCompanion) toggleFocusMode(false);
+});
+document.getElementById('stop-mic').onclick = () => {
+  continuousEl.checked = false;
+  clearTimeout(voiceRestartTimer);
+  clearTimeout(autoSendTimer);
+  if (voiceRecognition) {
+    voiceRecognition.editing = true;
+    if (voiceActive || voiceStarting) voiceRecognition.abort();
+  }
+  // onend confirms the microphone has stopped; retain any draft for manual review.
+  if (!voiceActive && !voiceStarting) renderInteraction();
+};
+function suspendAutoListening() {
+  clearTimeout(voiceRestartTimer);
+  if (continuousEl.checked && voiceRecognition && (voiceActive || voiceStarting)) voiceRecognition.abort();
+}
+function scheduleAutoListening() {
+  clearTimeout(voiceRestartTimer);
+  if (window.songDeck?.active || window.bilibiliDeck?.active || window.bilibiliNarration?.mediaActive) return;
+  if (!continuousEl.checked || !voiceRecognition || voiceDraft || generationActive || synthesisTurns.size || textInputEl.value.trim()
+      || currentAudioItem || playbackState.queued || playbackState.paused
+      || interaction.phase !== 'idle' || ws.readyState !== WebSocket.OPEN) return;
+  voiceRestartTimer = setTimeout(() => {
+    if (continuousEl.checked && !voiceDraft && !generationActive && !synthesisTurns.size && !currentAudioItem && !voiceActive && !voiceStarting
+        && !window.songDeck?.active && !window.bilibiliDeck?.active && !window.bilibiliNarration?.mediaActive
+        && interaction.phase === 'idle' && ws.readyState === WebSocket.OPEN) {
+      voiceStarting = true;
+      try { voiceRecognition.start(); }
+      catch (error) { voiceStarting = false; continuousEl.checked = false; setInteraction('error', undefined, '麦克风启动失败，请点击语音对话重试'); }
+    }
+  }, 500);
+}
+function cancelVoiceDraft() {
+  if (voiceRecognition && (voiceActive || voiceStarting)) {
+    voiceRecognition.editing = true;
+    voiceRecognition.abort();
+  }
+  clearTimeout(autoSendTimer);
+  voiceDraft = false;
+  correctingId = null;
+  reviewEl.hidden = true;
+  textInputEl.value = '';
+  if (pausedForMic && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type:'playback_pause', paused:false}));
+  pausedForMic = false;
+  setInteraction(currentAudioItem ? (playbackState.paused ? 'paused' : 'speaking') : 'idle');
+  scheduleAutoListening();
+}
+document.getElementById('confirm-voice').onclick = () => sendCompanion();
+document.getElementById('discard-voice').onclick = cancelVoiceDraft;
+textInputEl.addEventListener('input', () => {
+  clearTimeout(autoSendTimer);
+  if (voiceRecognition && (voiceActive || voiceStarting)) {
+    voiceRecognition.editing = true;
+    voiceRecognition.abort();
+  }
+  if (voiceDraft) reviewHintEl.textContent = '修改完成后点击确认发送。';
+});
+const BrowserSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (BrowserSpeechRecognition) {
+  const paceEl = document.getElementById('voice-pace');
+  const namesEl = document.getElementById('voice-names');
+  try {
+    paceEl.value = localStorage.getItem('avatar-voice-pace') || 'natural';
+    namesEl.value = localStorage.getItem('avatar-voice-names') || '助手';
+  } catch (_) { namesEl.value = '助手'; }
+  paceEl.onchange = () => { try { localStorage.setItem('avatar-voice-pace', paceEl.value); } catch (_) {} };
+  namesEl.onchange = () => { try { localStorage.setItem('avatar-voice-names', namesEl.value.slice(0,240)); } catch (_) {} };
+  const recognition = new BrowserSpeechRecognition();
+  voiceRecognition = recognition;
+  recognition.lang = 'zh-CN';
+  recognition.interimResults = true;
+  recognition.continuous = true;
+  recognition.maxAlternatives = 3;
+  let voiceSubmitted = false;
+  let voiceInterrupted = false;
+  let fatalError = false;
+  voiceInputEl.hidden = false;
+  document.getElementById('continuous-label').hidden = false;
+  continuousEl.title = '自动轮流收音；助手播放时暂停收音，避免识别自己的声音。需要插话时点击麦克风。';
+  continuousEl.onchange = () => {
+    if (!continuousEl.checked) {
+      clearTimeout(voiceRestartTimer);
+      clearTimeout(autoSendTimer);
+      if (voiceActive || voiceStarting) recognition.abort();
+    } else {
+      fatalError = false;
+      scheduleAutoListening();
+    }
+  };
+  voiceInputEl.onclick = () => {
+    if (ws.readyState !== WebSocket.OPEN) { setInteraction('error', undefined, '连接已断开，请先刷新页面'); return; }
+    if (voiceActive || voiceStarting) {
+      continuousEl.checked = false;
+      recognition.stop();
+      return;
+    }
+    if (currentAudioItem) {
+      pausedForMic = !playbackState.paused;
+      reportPlaybackProgress();
+      audioPlayer.pause();
+      audioPlaying = false;
+      ws.send(JSON.stringify({type: 'playback_pause', paused: true}));
+    }
+    clearTimeout(autoSendTimer);
+    fatalError = false;
+    voiceStarting = true;
+    try { recognition.start(); } catch (error) { voiceStarting = false; setInteraction('error', undefined, '无法开启麦克风，请重试'); }
+  };
+  recognition.onstart = () => {
+    recognition.editing = false;
+    voiceStarting = false;
+    voiceActive = true;
+    voiceSubmitted = false;
+    voiceInterrupted = false;
+    recognition.reviewStarted = null;
+    faceMotion.clearAfterglow();
+    speechCues.clearFocus();
+    presence.listen(true);
+    setInteraction('listening');
+    voiceInputEl.classList.add('listening');
+    voiceInputEl.textContent = '⏹ 停止收音';
+  };
+  recognition.onspeechstart = () => {
+    clearTimeout(autoSendTimer);
+    presence.hear(textInputEl.value, performance.now(), {final:false});
+    if (!recognition.editing) setInteraction('listening');
+  };
+  recognition.onspeechend = () => { if (!voiceSubmitted) setInteraction('recognizing'); };
+  recognition.onresult = (event) => {
+    if (recognition.editing) return;
+    clearTimeout(autoSendTimer);
+    let transcript = '';
+    let complete = false;
+    for (let i = 0; i < event.results.length; i += 1) {
+      transcript += event.results[i][0].transcript;
+      complete = i === event.results.length - 1 && event.results[i].isFinal;
+    }
+    textInputEl.value = transcript.trim();
+    const decision = ChatInteraction.voiceResultsDecision(textInputEl.value, event.results, {pace:paceEl.value, names:(namesEl.value || '').split(/[，,\n]/).map(n=>n.trim()).filter(Boolean)});
+    presence.hear(transcript, performance.now(), {final:complete, decision});
+    if (!voiceInterrupted && ChatInteraction.isInterruption(transcript)
+        && ws.readyState === WebSocket.OPEN) {
+      voiceInterrupted = true;
+      reportPlaybackProgress();
+      ws.send(JSON.stringify({type: 'conversation_interrupt'}));
+    }
+    if (!complete) {
+      voiceDraft = false;
+      reviewEl.hidden = true;
+      setInteraction('listening');
+    }
+    if (complete && textInputEl.value) {
+      if (recognition.reviewStarted === null) recognition.reviewStarted = performance.now();
+      voiceSubmitted = true;
+      voiceDraft = true;
+      correctingId = null;
+      reviewEl.hidden = false;
+      setInteraction('review');
+      reviewHintEl.textContent = continuousEl.checked ? decision.hint
+        : '识别结果已放入输入框，可修改后确认发送。' + (decision.delay === null ? decision.hint : '');
+      if (continuousEl.checked && decision.delay !== null) autoSendTimer = setTimeout(() => {
+        if (voiceDraft && continuousEl.checked) { recognition.stop(); sendCompanion(); }
+      }, decision.delay);
+      if (!continuousEl.checked) recognition.stop();
+    }
+  };
+  recognition.onerror = (event) => {
+    if (event.error === 'aborted') return;
+    if (event.error === 'no-speech') { setInteraction('idle'); return; }
+    fatalError = true;
+    continuousEl.checked = false;
+    clearTimeout(voiceRestartTimer);
+    const reason = ['not-allowed','service-not-allowed'].includes(event.error)
+      ? '麦克风权限未开启；可继续打字，或允许权限后重试' : `语音识别失败：${event.error}，请重试`;
+    setInteraction('error', undefined, reason);
+  };
+  recognition.onend = () => {
+    voiceActive = false;
+    voiceStarting = false;
+    presence.listen(false);
+    voiceInputEl.classList.remove('listening');
+    voiceInputEl.textContent = '🎙 语音对话';
+    renderInteraction();
+    if (!voiceDraft && !fatalError && ['listening','recognizing'].includes(interaction.phase))
+      setInteraction(currentAudioItem ? (playbackState.paused ? 'paused' : 'speaking') : 'idle');
+    if (!fatalError) scheduleAutoListening();
+  };
+}
+
+// 后端拥有唯一语音队列；按钮只发送控制意图，等待后端广播结果。
+pauseAudioEl.onclick = () => {
+  reportPlaybackProgress();
+  if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type:'playback_pause', paused: !playbackState.paused}));
+};
+document.getElementById('interrupt-chat').onclick = () => {
+  stopAllMedia(true);
+  continuousEl.checked = false;
+  suspendAutoListening();
+  if (voiceRecognition && (voiceActive || voiceStarting)) voiceRecognition.abort();
+  clearTimeout(autoSendTimer);
+  reportPlaybackProgress();
+  if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type:'conversation_interrupt'}));
+  setInteraction('idle');
+};
+retryEl.onclick = () => {
+  if (!lastSubmitted) return;
+  textInputEl.value = lastSubmitted.text;
+  correctingId = null;
+  voiceDraft = false;
+  sendCompanion({source:'companion'});
+};
+skipAudioEl.onclick = () => {
+  if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type: 'playback_skip'}));
+};
+clearAudioEl.onclick = () => {
+  if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type: 'playback_clear'}));
+};
+function updateAudioStatus() {
+  const queued = Number(playbackState.queued || 0);
+  const label = playbackState.paused ? '⏸ 已暂停' : audioPlaying ? '🔊 播放中'
+    : currentAudioItem ? '⏳ 准备播放'
+    : playbackState.state === 'dispatched' ? '⏳ 等待播放器'
+    : queued ? '⏳ 等待语音' : '';
+  audioStatusEl.textContent = label ? `${label} · 排队 ${queued} 条` : '';
+  audioStatusEl.title = playbackState.last_reason || '';
+  skipAudioEl.disabled = !currentAudioItem && playbackState.current_id == null;
+  clearAudioEl.disabled = skipAudioEl.disabled && queued === 0;
+}
+
+// Subtle speech-driven faces use model input parameters; explicit actions keep
+// their registered expression assets and take priority over the subtle layer.
+const TIMED_PARAMS = {
+  wave: 'Anjian6', phone: 'Anjian10', controller: 'Anjian11',
+  phoneTap: 'Anjian16', left: 'Anjian17', right: 'Anjian19', lean: 'ParamPositionZ',
+};
+const timedActions = {};
+const appearance = {
+  coatVisible: 1, glassesParam12: 0, glassesParam13: 0,
+  shortHair: 0, longHair: 0,
+};
+let l2d = null;
+let currentExpression = '';
+let expressionQueue = Promise.resolve();
+const bodyMotion = new CompanionMotion();
+const faceMotion = new CompanionFace();
+const eyeMotion = new CompanionGaze();
+const conversationGestures = new CompanionGestures();
+const speechPerformance = new CompanionSpeechPerformance();
+const speechCues = new CompanionSpeechCues();
+const performanceSlider = document.getElementById('performance-intensity');
+const performancePresets = [['performance-natural',1], ['performance-bold',1.8], ['performance-exaggerated',2.6]];
+let savedPerformance = null;
+try { savedPerformance = localStorage.getItem('avatar-performance-intensity'); } catch (_) {}
+let performanceIntensity = savedPerformance !== null && savedPerformance.trim() !== '' && Number.isFinite(Number(savedPerformance))
+  ? Math.max(0, Math.min(3, Number(savedPerformance)))
+  : window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 1 : 1.8;
+function renderPerformanceIntensity() {
+  const percent = Math.round(performanceIntensity * 100);
+  performanceSlider.value = String(percent);
+  const label = percent === 0 ? '关闭' : percent === 100 ? '自然' : percent === 180 ? '明显' : percent === 260 ? '夸张' : '自定';
+  document.getElementById('performance-level').textContent = `${label} ${percent}%`;
+  for (const [id, value] of performancePresets)
+    document.getElementById(id).setAttribute('aria-pressed', String(Math.abs(performanceIntensity-value) < .001));
+}
+function setPerformanceIntensity(value) {
+  if (!Number.isFinite(value)) return;
+  performanceIntensity = Math.max(0, Math.min(3, value));
+  try { localStorage.setItem('avatar-performance-intensity', String(performanceIntensity)); } catch (_) {}
+  renderPerformanceIntensity();
+}
+performanceSlider.oninput = () => setPerformanceIntensity(Number(performanceSlider.value) / 100);
+for (const [id, value] of performancePresets)
+  document.getElementById(id).onclick = () => setPerformanceIntensity(value);
+renderPerformanceIntensity();
+let avatarPreview = null;
+let avatarPreviewTimer = null;
+function avatarPreviewBusy() {
+  return Boolean(currentAudioItem || audioPlaying || presence.listening || presence.thinking
+    || generationActive || synthesisTurns.size || voiceActive || voiceStarting || currentExpression
+    || window.songDeck?.active || window.bilibiliDeck?.active || window.bilibiliNarration?.mediaActive);
+}
+function stopAvatarPreview(message = '预览结束，可继续调整强度。') {
+  if (!avatarPreview) return;
+  clearTimeout(avatarPreviewTimer);
+  avatarPreviewTimer = null;
+  avatarPreview = null;
+  document.getElementById('avatar-preview').textContent = '预览10秒';
+  document.getElementById('avatar-preview').setAttribute('aria-pressed', 'false');
+  document.getElementById('avatar-preview-status').textContent = message;
+}
+function startAvatarPreview(now = performance.now()) {
+  const status = document.getElementById('avatar-preview-status');
+  if (!l2d) { status.textContent = '角色还在加载，请稍后再预览。'; return false; }
+  if (avatarPreviewBusy()) { status.textContent = '当前正在互动，空闲后可预览。'; return false; }
+  if (document.documentElement.classList.contains('broadcast-display')) return false;
+  stopAvatarPreview();
+  // Separate controllers keep this silent demo out of the real speech lifecycle.
+  const kind = document.getElementById('avatar-preview-kind').value;
+  const emotion = {'speech:开心':'开心', 'speech:惊讶':'惊讶', 'speech:委屈':'委屈'}[kind] || '平静';
+  const example = {
+    'intent:focus':'我想想，前面也不错，不过我更喜欢后半段。',
+    'intent:question':'这两个版本，你更喜欢哪一个？',
+  }[kind] || '';
+  avatarPreview = {startedAt:now, kind, face:new CompanionFace(), eyes:new CompanionGaze(), motion:new CompanionMotion(),
+    emotion, gestures:new CompanionGestures(), speechPerformance:new CompanionSpeechPerformance(),
+    cues:new CompanionSpeechCues(), text:example, semantic:Boolean(example),
+    duration:kind === 'intent:question' ? 4.5 : kind.startsWith('speech:') ? 4 : 7,
+    gazeBlink:false, begun:false, ended:false};
+  avatarPreviewTimer = setTimeout(() => stopAvatarPreview(), 10000);
+  document.getElementById('avatar-preview').textContent = '停止预览';
+  document.getElementById('avatar-preview').setAttribute('aria-pressed', 'true');
+  const label = kind.startsWith('speech:') ? `${emotion}地说话` : kind === '轻吐槽' ? '吐槽' : kind;
+  status.textContent = example ? `无声示例：“${example}” · ${kind === 'intent:question' ? '问到句尾 → 看着你等回答' : '斟酌时移开视线 → 强调时回看、点头'}`
+    : label ? `无声预览：${label}${kind.startsWith('speech:') ? ' → 留一点余韵' : ''} → 回到待机` : '无声预览：微笑 → 说话时眉眼、头部与身体联动 → 回到待机';
+  return true;
+}
+document.getElementById('avatar-preview').onclick = () => {
+  if (avatarPreview) stopAvatarPreview('已停止预览。');
+  else startAvatarPreview();
+};
+document.getElementById('avatar-preview-kind').onchange = () => {
+  if (avatarPreview) startAvatarPreview();
+};
+function sampleAvatarPreview(now) {
+  if (!avatarPreview) return null;
+  if (avatarPreviewBusy()) { stopAvatarPreview('已结束预览，继续当前互动。'); return null; }
+  const elapsed = Math.max(0, (now-avatarPreview.startedAt) / 1000);
+  if (elapsed >= 10) { stopAvatarPreview(); return null; }
+  const active = elapsed >= 1 && elapsed < 1+avatarPreview.duration;
+  const listening = active && avatarPreview.kind === '倾听';
+  const thinking = active && avatarPreview.kind === '思考';
+  const speaking = active && !listening && !thinking;
+  if (active && !avatarPreview.begun) {
+    if (speaking) {
+      avatarPreview.face.begin({turnId:'local-avatar-preview', segmentIndex:0, emotion:avatarPreview.emotion, text:'', explicitFace:false}, now);
+      avatarPreview.gestures.begin({turnId:'local-avatar-preview', actions:avatarPreview.kind && !avatarPreview.kind.includes(':') ? [avatarPreview.kind] : []});
+      avatarPreview.speechPerformance.begin({turnId:'local-avatar-preview', segmentIndex:0, emotion:avatarPreview.emotion});
+      avatarPreview.cues.begin({turnId:'local-avatar-preview', segmentIndex:0, text:avatarPreview.text});
+    }
+    avatarPreview.begun = true;
+  }
+  if (!active && avatarPreview.begun && !avatarPreview.ended) {
+    avatarPreview.face.end({completed:true}, now);
+    avatarPreview.gestures.end({completed:true});
+    avatarPreview.speechPerformance.end({completed:true});
+    avatarPreview.cues.end({completed:true}, now);
+    avatarPreview.ended = true;
+  }
+  const mediaTime = Math.max(0, elapsed-1);
+  const voiced = speaking && (avatarPreview.semantic || mediaTime % 2.3 < 1.85);
+  return {state:avatarPreview, face:avatarPreview.face, eyes:avatarPreview.eyes, motion:avatarPreview.motion,
+    gestures:avatarPreview.gestures, speechPerformance:avatarPreview.speechPerformance,
+    speaking, listening, thinking, mediaTime, semantic:avatarPreview.semantic,
+    cueFrame:avatarPreview.cues.frame(now, {speaking,listening,mediaTime,duration:avatarPreview.duration}),
+    level:voiced ? .035 + .1 * (.5 + .5 * Math.sin(mediaTime*11)) : 0,
+    brightness:.5 + .46 * Math.sin(mediaTime*2.8)};
+}
+const eyeSlider = document.getElementById('eye-intensity');
+const savedEye = localStorage.getItem('avatar-eye-intensity');
+let eyeIntensity = savedEye !== null && Number.isFinite(Number(savedEye))
+  ? Math.max(0,Math.min(1,Number(savedEye)))
+  : window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? .3 : .75;
+eyeSlider.value = String(Math.round(eyeIntensity * 100));
+document.getElementById('eye-level').textContent = eyeSlider.value + '%';
+eyeSlider.oninput = () => {
+  const value = Number(eyeSlider.value);
+  if (!Number.isFinite(value)) return;
+  eyeIntensity = Math.max(0,Math.min(1,value/100));
+  document.getElementById('eye-level').textContent = Math.round(eyeIntensity * 100) + '%';
+  localStorage.setItem('avatar-eye-intensity', String(eyeIntensity));
+};
+const speechHeadSlider = document.getElementById('speech-head-intensity');
+const savedSpeechHead = localStorage.getItem('avatar-speech-head-intensity');
+let speechHeadIntensity = savedSpeechHead !== null && Number.isFinite(Number(savedSpeechHead))
+  ? Math.max(0,Math.min(1.6,Number(savedSpeechHead)))
+  : window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? .4 : 1;
+speechHeadSlider.value = String(Math.round(speechHeadIntensity * 100));
+document.getElementById('speech-head-level').textContent = speechHeadSlider.value + '%';
+speechHeadSlider.oninput = () => {
+  const value = Number(speechHeadSlider.value);
+  if (!Number.isFinite(value)) return;
+  speechHeadIntensity = Math.max(0,Math.min(1.6,value/100));
+  document.getElementById('speech-head-level').textContent = Math.round(speechHeadIntensity * 100) + '%';
+  localStorage.setItem('avatar-speech-head-intensity', String(speechHeadIntensity));
+};
+const avatarSpeech = {
+  turnId:null, audioId:null, segmentIndex:-1, clockMs:0, lastMediaTime:0, active:false,
+  seenActions:new Set(), faceName:'', releaseTimer:null, expressionVersion:0,
+};
+const faceSlider = document.getElementById('face-intensity');
+const savedFace = localStorage.getItem('avatar-face-intensity');
+let faceIntensity = savedFace !== null && Number.isFinite(Number(savedFace))
+  ? Math.max(0,Math.min(1,Number(savedFace)))
+  : window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? .35 : .8;
+faceSlider.value = String(Math.round(faceIntensity * 100));
+document.getElementById('face-level').textContent = faceSlider.value + '%';
+faceSlider.oninput = () => {
+  const value = Number(faceSlider.value);
+  if (!Number.isFinite(value)) return;
+  faceIntensity = Math.max(0,Math.min(1,value/100));
+  document.getElementById('face-level').textContent = Math.round(faceIntensity * 100) + '%';
+  localStorage.setItem('avatar-face-intensity', String(faceIntensity));
+};
+const motionSlider = document.getElementById('motion-intensity');
+const savedMotion = localStorage.getItem('avatar-formal-motion-intensity');
+let motionIntensity = savedMotion !== null && Number.isFinite(Number(savedMotion))
+  ? Math.max(0,Math.min(1.6,Number(savedMotion)))
+  : window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? .45 : .8;
+motionSlider.value = String(Math.round(motionIntensity * 100));
+document.getElementById('motion-level').textContent = motionSlider.value + '%';
+motionSlider.oninput = () => {
+  motionIntensity = Math.max(0,Math.min(1.6,Number(motionSlider.value)/100));
+  document.getElementById('motion-level').textContent = motionSlider.value + '%';
+  localStorage.setItem('avatar-formal-motion-intensity', String(motionIntensity));
+};
+let latestCoatTurn = -1;
+function parseCoatCommand(text) {
+  const value = String(text || '').replace(/\s+/g, '');
+  if (/(不要|别|不用|不必|不能).{0,8}(穿|脱|显示|隐藏|外套)/.test(value)) return null;
+  const matches = [...value.matchAll(/(?:穿(?:上|回)?(?:这件|那件|你的)?外套|(?:把)?外套穿(?:上|回)|显示外套)|(?:脱(?:下|掉)?(?:这件|那件|你的)?外套|(?:把)?外套脱(?:下|掉)|隐藏外套)/g)];
+  if (!matches.length) return null;
+  // Verified against rendered model: Anjian9=1 shows the dark outer coat.
+  return /脱|隐藏/.test(matches[matches.length - 1][0]) ? 0 : 1;
+}
+function applyCoatCommand(text, turn, requested = new Set()) {
+  if (!Number.isFinite(turn) || turn < latestCoatTurn) return;
+  let value = parseCoatCommand(text);
+  if (value === null && !/(不要|别|不用|不必|不能)/.test(String(text || ''))) {
+    if (requested.has('穿外套') !== requested.has('脱外套')) value = requested.has('穿外套') ? 1 : 0;
+  }
+  if (value === null) return;
+  appearance.coatVisible = value;
+  latestCoatTurn = turn;
+}
+let coordinatedListening = {attention:0,nod:0,tilt:0};
+let coordinatedGaze = {x:0,y:0,headX:0,headY:0,blinkRequest:false};
+let liveGazeBlink = false;
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function holdAction(name, durationMs, value = 1) {
+  if (avatarSpeech.seenActions.has(name)) return;
+  avatarSpeech.seenActions.add(name);
+  timedActions[name] = { until: avatarSpeech.clockMs + durationMs, value,
+    persistent: name === 'phone' || name === 'controller' };
+}
+
+function syncAvatarClock() {
+  if (!audioPlaying || !currentAudioItem?.avatarStarted) return;
+  const mediaTime = Number(audioPlayer.currentTime);
+  if (!Number.isFinite(mediaTime)) return;
+  avatarSpeech.clockMs += Math.max(0, mediaTime - avatarSpeech.lastMediaTime) * 1000;
+  avatarSpeech.lastMediaTime = mediaTime;
+}
+
+function sampleAvatarFace(now, preview = null) {
+  if (preview) return preview.face.frame(now, {
+    level:preview.level, brightness:preview.brightness, playing:preview.speaking, paused:false,
+    mediaTime:preview.mediaTime, intensity:faceIntensity, eyeIntensity,
+    performance:performanceIntensity, gazeBlink:preview.state.gazeBlink,
+  });
+  syncAvatarClock();
+  const level = sampleSpeechLevel();
+  return faceMotion.frame(now, {
+    level, brightness:sampleSpeechBrightness(level), playing:audioPlaying,
+    listening:presence.listening,
+    paused:Boolean(currentAudioItem?.avatarStarted && !audioPlaying),
+    mediaTime:audioPlayer.currentTime, intensity:faceIntensity,
+    eyeIntensity, performance:performanceIntensity, gazeBlink:liveGazeBlink,
+  });
+}
+
+// This pinned Cubism adapter creates virtual parameters for unknown IDs.
+// Read the native ID table first, so optional facial channels never create any.
+const avatarParameters = new WeakMap();
+function avatarParameter(core, id) {
+  if (!avatarParameters.has(core)) {
+    const table = new Map();
+    const ids = core._model?.parameters?.ids || core._parameterIds || [];
+    Array.from(ids).forEach((name, index) => {
+      const low = core.getParameterMinimumValue(index), high = core.getParameterMaximumValue(index);
+      const center = core.getParameterDefaultValue(index);
+      if ([low, high, center].every(Number.isFinite) && low <= center && center <= high)
+        table.set(String(name), {low, high, center});
+    });
+    avatarParameters.set(core, table);
+  }
+  return avatarParameters.get(core).get(id);
+}
+
+function applyAvatarFace(core, face) {
+  const absolute = (id, value, multiply = false) => {
+    const limits = avatarParameter(core, id);
+    if (!limits || !Number.isFinite(value)) return;
+    const base = multiply ? core.getParameterValueById(id) : 1;
+    if (Number.isFinite(base)) core.setParameterValueById(id, clamp(base * value, limits.low, limits.high));
+  };
+  absolute('ParamMouthOpenY', face.mouthOpen);
+  // Preserve an expression's deliberate wink/closed eye, then apply our blink.
+  absolute('ParamEyeLOpen', face.eyeOpenL, true);
+  absolute('ParamEyeROpen', face.eyeOpenR, true);
+  for (const [id, offset] of [
+    ['ParamMouthForm', face.mouthForm], ['MouthPuckerWiden', face.mouthWidth],
+    ['MouthShrug', face.mouthRound], ['MouthX', face.mouthShift],
+    ['ParamBrowLForm', face.browL], ['ParamBrowRForm', face.browR],
+    ['ParamEyeLSmile', face.eyeSmile], ['ParamEyeRSmile', face.eyeSmile],
+  ]) {
+    const limits = avatarParameter(core, id);
+    if (!limits || !Number.isFinite(offset)) continue;
+    const base = core.getParameterValueById(id);
+    if (!Number.isFinite(base)) continue;
+    let value = clamp(offset, -1, 1);
+    // Amplify small smiles while keeping neutral and both range endpoints.
+    if (id === 'ParamMouthForm')
+      value = Math.sign(value) * (1-Math.exp(-10*Math.abs(value))) / (1-Math.exp(-10));
+    const span = value >= 0 ? limits.high-limits.center : limits.center-limits.low;
+    core.setParameterValueById(id, clamp(base + value * span, limits.low, limits.high));
+  }
+}
+
+function applyPupilGaze(core, gaze, attention) {
+  // Keep attention toward the camera without suppressing all eye movement.
+  const weight = 1 - attention * 0.35;
+  core.setParameterValueById('ParamEyeBallX', gaze.x * weight);
+  core.setParameterValueById('ParamEyeBallY', gaze.y * weight);
+  for (const [id, offset] of [['Param',gaze.x], ['Param2',gaze.y]]) {
+    const limits = avatarParameter(core, id);
+    if (!limits) continue;
+    const {low, high, center} = limits;
+    const target = center + offset * weight * (offset >= 0 ? high-center : center-low);
+    const physical = core.getParameterValueById(id);
+    core.setParameterValueById(id, clamp(physical * .25 + target * .75, low, high));
+  }
+}
+
+function applyAvatarParts(core) {
+  const now = performance.now();
+  for (const [name, parameter] of Object.entries(TIMED_PARAMS)) {
+    const action = timedActions[name];
+    const target = avatarSpeech.active && action && (action.persistent || action.until > avatarSpeech.clockMs) ? action.value : 0;
+    // Accessories use switches; actual gestures ease in and out.
+    const value = ['wave','left','right','lean','phoneTap'].includes(name)
+      ? bodyMotion.gesture(name, target, now) : target;
+    core.setParameterValueById(parameter, value);
+  }
+  core.setParameterValueById('Anjian9', appearance.coatVisible);
+  core.setParameterValueById('Anjian12', appearance.glassesParam12);
+  core.setParameterValueById('Anjian13', appearance.glassesParam13);
+  core.setParameterValueById('Anjian14', appearance.shortHair);
+  core.setParameterValueById('Anjian15', appearance.longHair);
+}
+
+function includesAny(text, words) {
+  return words.some(word => text.includes(word));
+}
+
+function setGlasses(mode) {
+  // 该模型资源名写的是“隐藏眼镜”，但实测组合为：10 无、01 第一副、11 第二副。
+  const values = mode === 'none' ? [1, 0] : mode === 'second' ? [1, 1] : [0, 1];
+  [appearance.glassesParam12, appearance.glassesParam13] = values;
+}
+
+function resetExpression() {
+  currentExpression = '';
+  avatarSpeech.expressionVersion += 1;
+  if (!l2d) return;
+  try { l2d.internalModel.motionManager.expressionManager?.resetExpression(); } catch (e) {}
+}
+
+function setAvatarExpression(expression, force = false) {
+  if (!force && expression === currentExpression) return;
+  if (!expression) { resetExpression(); return; }
+  currentExpression = expression;
+  const version = ++avatarSpeech.expressionVersion;
+  if (!l2d) return;
+  const model = l2d;
+  // Serialize lazy asset loads. A stale completion cannot restore an expression
+  // after an interruption or supersede a newer turn's requested face.
+  expressionQueue = expressionQueue.catch(() => {}).then(async () => {
+    if (version !== avatarSpeech.expressionVersion || model !== l2d) return;
+    const changed = await model.expression(expression);
+    const manager = model.internalModel.motionManager.expressionManager;
+    if (version !== avatarSpeech.expressionVersion) { manager?.resetExpression(); return; }
+    if (changed === false) manager?.restoreExpression();
+  }).catch(error => console.warn('Avatar expression unavailable', error));
+}
+
+function cancelAvatarRelease() {
+  clearTimeout(avatarSpeech.releaseTimer);
+  avatarSpeech.releaseTimer = null;
+}
+
+function finishAvatarSpeech(completed = false, item = null) {
+  conversationGestures.end({completed});
+  speechPerformance.end({completed});
+  speechCues.end({completed}, performance.now());
+  cancelAvatarRelease();
+  const release = () => {
+    avatarSpeech.releaseTimer = null;
+    avatarSpeech.active = false;
+    faceMotion.end({completed}, performance.now());
+    resetExpression();
+    if (!completed) {
+      avatarSpeech.turnId = null;
+      avatarSpeech.audioId = null;
+      avatarSpeech.faceName = '';
+      avatarSpeech.seenActions.clear();
+      for (const name of Object.keys(timedActions)) delete timedActions[name];
+    }
+  };
+  if (completed) {
+    const turnId = item?.turn_id ?? item?.id ?? avatarSpeech.turnId;
+    avatarSpeech.releaseTimer = setTimeout(() => {
+      if (avatarSpeech.turnId !== turnId || currentAudioItem) return;
+      release();
+    }, 900);
+  } else release();
+}
+
+function updateAppearance(text, requested) {
+
+  if (text.includes('摘眼镜')) {
+    setGlasses('none');
+  } else if (text.includes('眼镜2') || text.includes('换眼镜')) {
+    setGlasses('second');
+  } else if (text.includes('眼镜1') || text.includes('戴眼镜')) {
+    setGlasses('first');
+  }
+
+  if (text.includes('短发')) {
+    appearance.shortHair = 1;
+    appearance.longHair = 0;
+  } else if (includesAny(text, ['披发', '长发'])) {
+    appearance.shortHair = 0;
+    appearance.longHair = 1;
+  }
+
+  // LLM 明确指定的换装动作优先于观众关键词。
+  if (requested.has('摘眼镜')) {
+    setGlasses('none');
+  }
+  if (requested.has('戴眼镜') || requested.has('眼镜1')) {
+    setGlasses('first');
+  }
+  if (requested.has('眼镜2')) {
+    setGlasses('second');
+  }
+  if (requested.has('短发')) {
+    appearance.shortHair = 1;
+    appearance.longHair = 0;
+  }
+  if (requested.has('披发')) {
+    appearance.shortHair = 0;
+    appearance.longHair = 1;
+  }
+}
+
+function triggerAvatar(emotion, event, actions = [], speechItem = {}) {
+  cancelAvatarRelease();
+  const turnId = speechItem.turn_id ?? speechItem.id ?? event.id;
+  const sameTurn = turnId != null && avatarSpeech.turnId === turnId;
+  if (!sameTurn) {
+    avatarSpeech.clockMs = 0;
+    avatarSpeech.seenActions.clear();
+    avatarSpeech.faceName = '';
+    for (const name of Object.keys(timedActions)) delete timedActions[name];
+  }
+  avatarSpeech.turnId = turnId;
+  avatarSpeech.audioId = speechItem.id;
+  avatarSpeech.segmentIndex = speechItem.segment_index || 0;
+  avatarSpeech.lastMediaTime = Number.isFinite(audioPlayer.currentTime) ? audioPlayer.currentTime : 0;
+  avatarSpeech.active = true;
+  const text = String(event.text || '');
+  actions = Array.isArray(actions) ? actions : [];
+  const requested = new Set(actions);
+  applyCoatCommand(text, event.id, requested);
+  updateAppearance(text, requested);
+
+  // Formal persona greets calmly; waving is an explicit performance action.
+  if (event.source === 'game') holdAction('controller', 4200);
+  if (includesAny(text, ['拿手机', '看看手机', '看一下手机'])) {
+    holdAction('phone', 5200);
+    holdAction('phoneTap', 1100);
+  }
+  if (text.includes('左边') || text.includes('向左')) holdAction('left', 1300);
+  if (text.includes('右边') || text.includes('向右')) holdAction('right', 1300);
+  if (requested.has('挥手')) holdAction('wave', 2600);
+  if (requested.has('手机')) holdAction('phone', 5200);
+  if (requested.has('手机点击')) {
+    holdAction('phone', 3200);
+    holdAction('phoneTap', 1100);
+  }
+  if (requested.has('手柄')) holdAction('controller', 4200);
+  if (requested.has('向左')) holdAction('left', 1300);
+  if (requested.has('向右')) holdAction('right', 1300);
+  if (requested.has('前倾')) holdAction('lean', 1700, -0.72);
+  if (requested.has('瞳孔地震')) {
+    holdAction('lean', 1700, -0.72);
+    if (!avatarSpeech.seenActions.has('pupilShake')) {
+      avatarSpeech.seenActions.add('pupilShake');
+      try { l2d?.motion('PupilShake', 0, 3); } catch (e) {}
+    }
+  }
+
+  const faceActions = {
+    '脸红': '脸红', '嘟嘴': '嘟嘴', '弯眼': '弯眼', '弯眼口型': '弯眼口型',
+    '脸黑': '脸黑', '邪恶眼': '邪恶眼', '邪恶眼口型': '邪恶眼口型',
+    '伤心': '伤心', '生气': '生气', '瞳孔地震': '瞳孔地震',
+  };
+  const requestedFace = actions.find(action => faceActions[action]);
+  if (requestedFace) avatarSpeech.faceName = faceActions[requestedFace];
+  setAvatarExpression(avatarSpeech.faceName);
+  faceMotion.begin({turnId, segmentIndex:avatarSpeech.segmentIndex, emotion,
+    text:speechItem.text || '', explicitFace:Boolean(avatarSpeech.faceName)}, performance.now());
+  conversationGestures.begin({turnId, segmentIndex:avatarSpeech.segmentIndex, actions, emotion});
+  speechPerformance.begin({turnId, segmentIndex:avatarSpeech.segmentIndex, emotion});
+  speechCues.begin({turnId, segmentIndex:avatarSpeech.segmentIndex, text:speechItem.text || ''});
+}
+
+(async () => {
+  const status = document.getElementById('avatar-status');
+  if (!window.Live2DCubismCore) { status.textContent = 'cubismcore 未加载'; return; }
+  if (!window.PIXI || !PIXI.live2d || !PIXI.live2d.Live2DModel) { status.textContent = 'pixi/live2d 组件未加载'; return; }
+  try {
+    const wrap = document.getElementById('avatar-canvas');
+    const broadcastDisplay = document.documentElement.classList.contains('broadcast-display');
+    // Target up to a 4K drawing buffer: 1080p uses 2x, native 4K uses 1x.
+    const targetResolution = () => broadcastDisplay
+      ? Math.max(1, Math.min(2, 3840 / Math.max(1, wrap.clientWidth), 2160 / Math.max(1, wrap.clientHeight)))
+      : Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+    const renderResolution = targetResolution();
+    const app = new PIXI.Application({
+      backgroundAlpha: 0, resizeTo: wrap,
+      resolution: renderResolution, autoDensity: true, antialias: true,
+    });
+    // This pinned Cubism physics drops tiny per-frame particle movements at
+    // high refresh rates. Model time accumulates until render, so a local 60fps
+    // render cap preserves real timing and keeps head/body physics responsive.
+    app.ticker.maxFPS = 60;
+    wrap.appendChild(app.view);
+    const model = await PIXI.live2d.Live2DModel.from(
+      encodeURI('/skin/avatar/avatar.model3.json'),
+      { autoInteract: false }
+    );
+    app.stage.addChild(model);
+    const ow = model.width, oh = model.height;
+    const layout = () => {
+      const w = wrap.clientWidth, h = wrap.clientHeight;
+      const fit = Math.min(w / ow, h / oh);
+      const s = avatarViewMode === 'half' ? fit * 2.15 : fit * 0.95;
+      model.scale.set(s);
+      model.x = (w - ow * s) / 2;
+      // 半身模式把模型局部坐标约 33% 高度处固定在画布 57% 高度，
+      // 放大时尽可能保留头部和上身动作。
+      model.y = avatarViewMode === 'half'
+        ? h * 0.57 - oh * s * 0.33
+        : (h - oh * s) / 2;
+    };
+    avatarLayout = layout;
+    // CSS/scene resizing must resize the drawing buffer, not stretch old pixels.
+    const resizeAvatar = () => {
+      const width = Math.max(1, wrap.clientWidth), height = Math.max(1, wrap.clientHeight);
+      const resolution = targetResolution();
+      const changed = app.renderer.resolution !== resolution;
+      if (changed) app.renderer.resolution = resolution;
+      if (changed || app.screen.width !== width || app.screen.height !== height)
+        app.renderer.resize(width, height);
+      layout();
+    };
+    const avatarResizeObserver = new ResizeObserver(resizeAvatar);
+    avatarResizeObserver.observe(wrap);
+    resizeAvatar();
+    layout();
+    app.renderer.on('resize', layout);
+    l2d = model;
+    if (currentExpression) setAvatarExpression(currentExpression, true);
+    model.internalModel.focusController.focus(0, 0);
+    // Replace the pinned adapter's built-in breath layer, which also turns the
+    // head. CompanionMotion owns those channels so the sliders and eye
+    // compensation use the same motion that actually reaches the model.
+    // This hook still runs after expressions and before hair/clothes physics.
+    model.internalModel.updateNaturalMovements = () => {
+      const core = model.internalModel.coreModel;
+      const now = performance.now();
+      const preview = sampleAvatarPreview(now);
+      coordinatedListening = presence.frame(now, audioPlaying);
+      const liveAttention = coordinatedListening.attention;
+      if (preview) coordinatedListening = {
+        attention:preview.listening ? 1 : preview.thinking ? .45 : 0, nod:0, tilt:0,
+        readiness:0, curiosity:0,
+      };
+      // Keep real idle clocks moving while the demo is shown, so leaving it
+      // cannot revive an old expression or side glance from before the preview.
+      const liveFace = sampleAvatarFace(now);
+      const liveGesture = conversationGestures.frame(now, {
+        listening:presence.listening, thinking:presence.thinking,
+        speaking:audioPlaying, paused:Boolean(currentAudioItem && !audioPlaying),
+        mediaTime:audioPlayer.currentTime, intensity:motionIntensity,
+        eyeIntensity, faceIntensity, performance:performanceIntensity,
+        explicitFace:Boolean(currentExpression),
+      });
+      const gesture = preview ? preview.gestures.frame(now, {
+        listening:preview.listening, thinking:preview.thinking, speaking:preview.speaking,
+        mediaTime:preview.mediaTime, intensity:motionIntensity,
+        eyeIntensity, faceIntensity, performance:performanceIntensity,
+      }) : liveGesture;
+      const baseFace = preview ? sampleAvatarFace(now, preview) : liveFace;
+      // Wording supplies a sparse intention; the actual media clock supplies
+      // timing. This is a duration-based estimate, not forced word alignment.
+      const liveCueFrame = speechCues.frame(now, {
+        listening:presence.listening, speaking:audioPlaying, paused:Boolean(currentAudioItem && !audioPlaying),
+        mediaTime:audioPlayer.currentTime, duration:audioPlayer.duration,
+      });
+      // Explicit gesture/face priority and the real audio-driven jaw are kept.
+      const liveSpeechPerformance = speechPerformance.frame(now, {
+        listening:presence.listening, speaking:audioPlaying, paused:Boolean(currentAudioItem && !audioPlaying),
+        mediaTime:audioPlayer.currentTime, energy:liveFace.speechEnergy, accent:liveFace.accent,
+        intensity:motionIntensity, eyeIntensity, faceIntensity, performance:performanceIntensity,
+        explicitFace:Boolean(currentExpression),
+        semanticMode:true, semanticCue:liveCueFrame.cue,
+      });
+      const speech = preview ? preview.speechPerformance.frame(now, {
+        listening:preview.listening, speaking:preview.speaking, mediaTime:preview.mediaTime,
+        energy:baseFace.speechEnergy, accent:baseFace.accent,
+        intensity:motionIntensity, eyeIntensity, faceIntensity, performance:performanceIntensity,
+        semanticMode:preview.semantic, semanticCue:preview.cueFrame.cue,
+      }) : liveSpeechPerformance;
+      const secondary = 1 - gesture.weight;
+      const listeningStyle = !preview && !currentExpression && !audioPlaying
+        ? (coordinatedListening.curiosity || 0)*faceIntensity*Math.min(2,performanceIntensity) : 0;
+      // Lids stay closed during a blink; the new layer never writes the jaw.
+      const face = {...baseFace,
+        mouthForm:clamp(baseFace.mouthForm + gesture.smile + speech.smile*secondary, -1, 1),
+        browL:clamp(baseFace.browL + gesture.brow + speech.browL*secondary + listeningStyle*.045, -1, 1),
+        browR:clamp(baseFace.browR + gesture.brow + speech.browR*secondary + listeningStyle*.03, -1, 1),
+        eyeSmile:clamp(baseFace.eyeSmile + (gesture.smile + speech.smile*secondary)*.35, 0, .5),
+        eyeOpenL:clamp(baseFace.eyeOpenL + (gesture.eyeOpen + speech.eyeOpen*secondary)*baseFace.blink, 0, 1.15),
+        eyeOpenR:clamp(baseFace.eyeOpenR + (gesture.eyeOpen + speech.eyeOpen*secondary)*baseFace.blink, 0, 1.15),
+      };
+      // Cubism restores saved parameters after every frame. Facial inputs must
+      // be written here, before physics, to drive eyelids/lashes/lower-eye detail.
+      applyAvatarFace(core, face);
+      const eyeOpen = Math.min(...['ParamEyeLOpen', 'ParamEyeROpen'].map(id =>
+        avatarParameter(core, id) ? core.getParameterValueById(id) : 1));
+      const liveGaze = eyeMotion.frame(now, {
+        speaking:audioPlaying, paused:Boolean(currentAudioItem && !audioPlaying),
+        listening:presence.listening, thinking:presence.thinking,
+        intensity:eyeIntensity, performance:performanceIntensity, explicitFace:Boolean(currentExpression),
+        eyeOpen:preview ? Math.min(liveFace.eyeOpenL, liveFace.eyeOpenR) : eyeOpen,
+        focus:liveCueFrame.focus,
+      });
+      liveGazeBlink = liveGaze.blinkRequest;
+      const gaze = preview ? preview.eyes.frame(now, {
+        speaking:preview.speaking, eyeOpen, intensity:eyeIntensity, performance:performanceIntensity,
+        listening:preview.listening, thinking:preview.thinking,
+        focus:preview.semantic ? preview.cueFrame.focus : '',
+      }) : liveGaze;
+      if (preview) preview.state.gazeBlink = gaze.blinkRequest;
+      const liveMovement = bodyMotion.frame(now, {intensity:motionIntensity, performance:performanceIntensity, speaking:audioPlaying,
+        attention:liveAttention, gazeX:liveGaze.headX, gazeY:liveGaze.headY,
+        speechAccent:liveFace.accent, speechEnergy:liveFace.speechEnergy, headIntensity:speechHeadIntensity});
+      const baseMovement = preview ? preview.motion.frame(now, {intensity:motionIntensity, performance:performanceIntensity,
+        speaking:preview.speaking, gazeX:gaze.headX, gazeY:gaze.headY,
+        attention:coordinatedListening.attention,
+        speechAccent:face.accent, speechEnergy:face.speechEnergy, headIntensity:speechHeadIntensity}) : liveMovement;
+      // Make room for a deliberate pose instead of adding it on top of a full
+      // speech sway. Smooth gesture weight also controls the return to idle.
+      const coordinationWeight = Math.max(gesture.weight, speech.weight*secondary*.65);
+      const sway = 1 - coordinationWeight*.65;
+      const speechPose = preview ? preview.state.begun && !['倾听','思考'].includes(preview.state.kind)
+        : !presence.listening && Boolean(currentAudioItem || avatarSpeech.active);
+      const headGain = speechPose ? speechHeadIntensity : 1;
+      const headCoordinationWeight = Math.max(gesture.weight*Math.min(1,headGain),
+        speech.weight*secondary*.65*Math.min(1,speechHeadIntensity));
+      const headSway = 1 - headCoordinationWeight*.65;
+      const movement = {...baseMovement};
+      for (const axis of ['X','Y','Z']) {
+        movement['head'+axis] = clamp(baseMovement['head'+axis]*headSway + gesture['head'+axis]*headGain + speech['head'+axis]*secondary*speechHeadIntensity, -30, 30);
+        movement['body'+axis] = clamp(baseMovement['body'+axis]*sway + gesture['body'+axis] + speech['body'+axis]*secondary, -10, 10);
+      }
+      // Intentional gaze owns semantic speech; audio-only demo poses may still
+      // supply their own eyes. Never damp a thoughtful look with a zero offset.
+      const speechGazeWeight = preview && !preview.semantic ? speech.weight*secondary*.7 : 0;
+      const gazeWeight = currentExpression && !preview ? 0 : Math.min(1, gesture.weight + speechGazeWeight);
+      // Counter a small fraction of head rotation so eye contact does not drift
+      // with every speaking tilt. Use these same coordinates before/after physics.
+      coordinatedGaze = {...gaze,
+        x:clamp(gaze.x*(1-gazeWeight)+gesture.gazeX+speech.gazeX*secondary-movement.headX*.018*eyeIntensity, -.98, .98),
+        y:clamp(gaze.y*(1-gazeWeight)+gesture.gazeY+speech.gazeY*secondary-movement.headY*.012*eyeIntensity, -.75, .75),
+      };
+      // A stable question/turn ending brings attention back to the speaker;
+      // unfinished or corrected recognition never schedules this response.
+      const ready = !preview && !currentExpression && !audioPlaying
+        ? clamp(coordinatedListening.readiness || 0, 0, 1) : 0;
+      coordinatedGaze.x *= 1-ready*.65;
+      coordinatedGaze.y *= 1-ready*.65;
+      core.setParameterValueById('ParamEyeBallX', coordinatedGaze.x * (1-coordinatedListening.attention*.35));
+      core.setParameterValueById('ParamEyeBallY', coordinatedGaze.y * (1-coordinatedListening.attention*.35));
+      core.setParameterValueById('ParamBreath', movement.breath);
+      core.addParameterValueById('ParamBodyAngleX', movement.bodyX);
+      core.addParameterValueById('ParamBodyAngleY', movement.bodyY);
+      core.addParameterValueById('ParamBodyAngleZ', movement.bodyZ);
+      core.addParameterValueById('ParamAngleX', movement.headX);
+      const heardResponse = !audioPlaying && (coordinatedListening.readiness || 0)>0;
+      core.addParameterValueById('ParamAngleY', clamp(movement.headY - coordinatedListening.nod * 1.35 * motionIntensity * performanceIntensity * (heardResponse ? 1 : 1-gesture.weight), -30, 30));
+      core.addParameterValueById('ParamAngleZ', clamp(movement.headZ + coordinatedListening.tilt * motionIntensity * performanceIntensity * (1-gesture.weight), -30, 30));
+    };
+    // 换装/道具参数参与 Cubism Pose 的部件显隐计算。表情管理器也会写参数，
+    // 所以要在 Pose 真正计算的入口处应用，才能同时支持“摘眼镜 + 嘟嘴”等组合。
+    const pose = model.internalModel.pose;
+    if (pose) {
+      const updatePose = pose.updateParameters.bind(pose);
+      pose.updateParameters = (core, deltaTime) => {
+        applyAvatarParts(core);
+        updatePose(core, deltaTime);
+      };
+    } else {
+      model.internalModel.on('beforeModelUpdate', () => {
+        applyAvatarParts(model.internalModel.coreModel);
+      });
+    }
+    // 该事件发生在动作、注视和 Physics 之后、Cubism 参数提交之前。
+    // 眼球必须在这里最终写入，否则这个模型的瞳孔物理会覆盖 focusController。
+    model.internalModel.on('beforeModelUpdate', () => {
+      const core = model.internalModel.coreModel;
+      const gaze = coordinatedGaze;
+      const listening = coordinatedListening;
+      applyPupilGaze(core, gaze, listening.attention);
+    });
+    status.textContent = '';
+  } catch (e) {
+    status.textContent = '模型未加载。将自己的模型放在 skin/avatar/avatar.model3.json 后重启服务。可继续文字聊天。';
+    console.warn('Live2D load failed', e);
+  }
+})();
+</script>
+<script src="/static/songs.js?v=8"></script>
+<script src="/static/bilibili-browser.js?v=11"></script>
+<script src="/static/bilibili-player.js?v=12"></script>
+<script src="/static/music-requests.js"></script>
+<script>
+function stopAllMedia(remote = false) {
+  if (remote && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type:'media_stop'}));
+  window.songDeck?.stop();
+  window.bilibiliDeck?.stop();
+  window.bilibiliNarration?.cancel();
+}
+function prepareMediaInteraction() {
+  suspendMediaMicrophone();
+  if (currentAudioItem) finishAudio(currentAudioUrl, 'song_requested');
+}
+function suspendMediaMicrophone() {
+  continuousEl.checked = false;
+  pausedForMic = false;
+  clearTimeout(autoSendTimer); clearTimeout(voiceRestartTimer);
+  if (voiceRecognition && (voiceActive || voiceStarting)) {
+    voiceRecognition.editing = true; voiceRecognition.abort();
+  }
+}
+// The server waits for the current audio owner's actual playback receipt, so
+// this also works when the character voice is playing in OBS rather than here.
+window.bilibiliNarration = {
+  pending: null,
+  available: false,
+  directAvailable: false,
+  reviewAvailable: false,
+  localAvailable: false,
+  mediaActive: false,
+  sequence: 0,
+  playbackRequestId: null,
+  expired: new Set(),
+  observe(requestId) {
+    if (!this.expired.has(requestId)) this.playbackRequestId = requestId;
+  },
+  end(requestId) {
+    this.expired.add(requestId);
+    if (this.expired.size > 100) this.expired.delete(this.expired.values().next().value);
+    if (this.playbackRequestId === requestId) this.playbackRequestId = null;
+  },
+  accepts(item) {
+    const requestId = item.event?.media_narration_id;
+    return !!requestId && !this.expired.has(requestId) &&
+      (requestId === this.pending?.requestId || requestId === this.playbackRequestId);
+  },
+  cancel() {
+    if (this.playbackRequestId) this.end(this.playbackRequestId);
+    const pending = this.pending;
+    if (!pending) return;
+    this.end(pending.requestId);
+    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({
+      type:'bilibili_narration_cancel', request_id:pending.requestId,
+    }));
+    if (currentAudioItem?.event?.media_narration_id === pending.requestId) finishAudio(currentAudioUrl, 'narration_cancelled');
+    pending.finish(false);
+  },
+  complete(data) {
+    if (data.request_id !== this.pending?.requestId) return;
+    if (data.completed !== true && data.error_code === 'voice_resource_unavailable') {
+      const reason = typeof data.reason === 'string' && data.reason.trim() ? data.reason.slice(0,500)
+        : '语音资源暂不可用，请在启动中心启动后台任务服务，等待授权恢复后重试。';
+      this.pending.finish(false, Object.assign(new Error(reason), {code:data.error_code}));
+      return;
+    }
+    if (data.completed !== true && this.pending.stage === 'review' && typeof data.reason === 'string' && data.reason.trim()) {
+      this.pending.finish(false, Object.assign(new Error(data.reason.slice(0,500)), {code:'review_narration_unavailable'}));
+      return;
+    }
+    this.pending.finish(data.completed === true);
+  },
+  speak({stage, query, item, signal, result_id, evidence_id, selection: selectionReason, error, media = 'bilibili'}) {
+    this.cancel();
+    const local = media === 'local';
+    if (!local && stage === 'direct' && !this.directAvailable) {
+      return Promise.reject(Object.assign(new Error('当前主服务尚未启用指定视频介绍，可更新主服务后重试，或手动继续播放。'),
+        {code:'direct_narration_unavailable'}));
+    }
+    if (!local && stage === 'review' && !this.reviewAvailable) {
+      return Promise.reject(Object.assign(new Error('当前主服务尚未启用字幕评价，请更新主服务后刷新控制台。'),
+        {code:'review_narration_unavailable'}));
+    }
+    if (!(local ? this.localAvailable : this.available) || signal?.aborted || ws.readyState !== WebSocket.OPEN) return Promise.resolve(false);
+    let selection = {};
+    if (item && local) {
+      if (!window.songDeck?.validSong(item, true)) return Promise.resolve(false);
+      selection.song = item.url.startsWith('blob:')
+        ? {local_file:true, title:[...item.title].slice(0,120).join('')} : {url:item.url, title:item.title};
+    } else if (item && !['direct','review'].includes(stage)) selection.bvid = item.bvid;
+    if (!local && stage === 'review') {
+      if (typeof evidence_id !== 'string' || !evidence_id || evidence_id.length > 128) return Promise.resolve(false);
+      selection.evidence_id = evidence_id;
+    }
+    if (!local && ['found','results'].includes(stage)) {
+      if (typeof result_id !== 'string' || !result_id) return Promise.resolve(false);
+      selection.result_id = result_id;
+    }
+    if (!local && selectionReason === 'highest_play') selection.selection = selectionReason;
+    if (!local && ['empty', 'network', 'timeout', 'rate_limited', 'upstream_rejected', 'invalid_response', 'service', 'missing_play_count', 'below_play_threshold', 'uncertain_play_count', 'browser_required', 'verification_required', 'login_required', 'page_unavailable', 'browser_disconnected'].includes(error)) selection.error = error;
+    const requestId = (local ? 'song-' : 'bili-') + Date.now().toString(36) + '-' + (++this.sequence);
+    return new Promise((resolve, reject) => {
+      const abort = () => { if (this.pending?.requestId === requestId) this.cancel(); };
+      const timer = setTimeout(abort, !local && stage === 'review' ? 240000 : 180000);
+      const finish = (completed, error = null) => {
+        if (this.pending?.requestId !== requestId) return;
+        clearTimeout(timer);
+        signal?.removeEventListener('abort', abort);
+        this.pending = null;
+        if (error) reject(error);
+        else resolve(completed);
+      };
+      this.pending = {requestId, media, stage, finish};
+      signal?.addEventListener('abort', abort, {once:true});
+      ws.send(JSON.stringify({type:local ? 'song_narrate' : 'bilibili_narrate', request_id:requestId,
+        stage, query, ...selection}));
+    });
+  },
+};
+window.songDeck = new SongDeck({
+  beforeRequest() { window.bilibiliDeck?.stop(); prepareMediaInteraction(); },
+  beforePlay() { window.bilibiliDeck?.stop(); prepareMediaInteraction(); },
+  narrate: options => window.bilibiliNarration.speak({...options, media:'local'}),
+  onCancel() { window.bilibiliNarration.cancel(); },
+  onChange({phase}) {
+    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type:'song_playback_state', active: !['idle','error'].includes(phase)}));
+  },
+  onBilibili(query) { return window.bilibiliDeck?.request(query); },
+  onStop() { stopAllMedia(true); },
+});
+if (typeof BilibiliDeck !== 'undefined') window.bilibiliDeck = new BilibiliDeck({
+  beforeRequest() { window.songDeck?.stop(); prepareMediaInteraction(); },
+  beforePlay() { window.songDeck?.stop(); prepareMediaInteraction(); },
+  narrate: options => window.bilibiliNarration.speak(options),
+  reviewAvailable: () => window.bilibiliNarration.reviewAvailable && ws.readyState === WebSocket.OPEN,
+  onCancel() { window.bilibiliNarration.cancel(); },
+  onChange({phase}) {
+    if (phase === 'querying' && window.songDeck?.pending) window.songDeck.stop();
+    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type:'bilibili_playback_state', active: !['idle','error'].includes(phase)}));
+  },
+});
+let initialBilibili = new URLSearchParams(location.search).get('bilibili');
+window.startInitialBilibili = () => {
+  if (!initialBilibili || !window.bilibiliDeck) return;
+  const query = initialBilibili;
+  initialBilibili = null;
+  window.bilibiliDeck.request(query);
+};
+document.getElementById('open-bilibili').onclick = () => {
+  document.getElementById('bilibili-panel').hidden = false;
+  document.getElementById('bilibili-query').focus();
+};
+const enableBroadcastAudio = document.getElementById('broadcast-enable-audio');
+enableBroadcastAudio.hidden = true;
+async function enableLiveAudio(automatic = false) {
+  try {
+    await resumeAudioContext();
+    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type:'playback_pause', paused:false}));
+    if (currentAudioItem) playCurrentAudio();
+    enableBroadcastAudio.hidden = true;
+  } catch (_) {
+    if (!automatic || currentAudioItem) {
+      enableBroadcastAudio.textContent = '浏览器拦截了声音 · 点击启用';
+      enableBroadcastAudio.hidden = false;
+    }
+  }
+}
+enableBroadcastAudio.onclick = () => enableLiveAudio();
+if (document.documentElement.classList.contains('broadcast-display')) {
+  autoplayEl.checked = true;
+  audioPlayer.autoplay = true;
+  audioPlayer.muted = false;
+  enableLiveAudio(true);
+}
+audioPlayer.addEventListener('playing', () => { enableBroadcastAudio.hidden = true; });
+async function refreshBilibiliStatus() {
+  try {
+    const response = await fetch('/bilibili-status');
+    if (!response.ok) return;
+    const state = await response.json();
+    const labels = {disabled:'未开启', connecting:'正在连接', connected:'已连接', reconnecting:'正在重连', disconnected:'已断开'};
+    sourceStatusEl.textContent = `B站弹幕 ${state.room_id || ''}：${labels[state.state] || state.state}`;
+  } catch (_) {}
+}
+refreshBilibiliStatus(); setInterval(refreshBilibiliStatus, 10000);
+document.getElementById('voice-input').addEventListener('click', () => stopAllMedia(true), true);
+document.getElementById('continuous-voice').addEventListener('change', () => {
+  if (continuousEl.checked) stopAllMedia(true);
+}, true);
+window.ConsoleUI?.init({
+  send(payload) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+    try { ws.send(JSON.stringify(payload)); return true; } catch (_) { return false; }
+  },
+  draft(payload) {
+    const advanced = payload.source === 'danmaku';
+    const input = advanced ? document.getElementById('advanced-text') : textInputEl;
+    if (voiceActive || voiceStarting || voiceDraft || (input.value.trim() && input.value !== payload.text)) return false;
+    input.value = payload.text;
+    if (advanced) {
+      document.getElementById('source').value = payload.source;
+      document.getElementById('kind').value = payload.kind;
+      document.getElementById('user').value = payload.user;
+      document.getElementById('local-test-panel').open = true;
+      document.getElementById('custom-event-panel').open = true;
+      document.getElementById('advanced-inject').scrollIntoView?.({block:'center'});
+    }
+    input.focus();
+    return true;
+  },
+  reconnect() {
+    if (ws?.readyState === WebSocket.OPEN) return;
+    clearTimeout(reconnectTimer);
+    if (ws && ws.readyState < WebSocket.CLOSING) {ws.onclose=null;ws.close();}
+    connectSocket();
+  },
+  async enableAudio() {
+    ensureLipSyncAudio();
+    await resumeAudioContext();
+    autoplayEl.checked = true;
+    if (currentAudioItem) await playCurrentAudio();
+  },
+});
+</script>
+</body>
+</html>

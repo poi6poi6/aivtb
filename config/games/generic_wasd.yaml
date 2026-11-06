@@ -1,0 +1,25 @@
+name: 通用 WASD 探索
+strategy: generic_wasd
+long_term_goal: 安全探索当前区域，避免失败，并优先处理明显的交互提示
+controls:
+  forward: w
+  back: s
+  left: a
+  right: d
+  jump: space
+  interact: e
+  confirm: enter
+recognition:
+  death_keywords: [失败, 阵亡, 死亡, game over, you died, retry]
+  menu_keywords: [设置, 选项, settings, options, pause, paused]
+  interact_keywords: [按e, 按 e, interact, pick up, 拾取, 交互]
+  low_health_threshold: 0.22
+  stuck_motion_threshold: 1.8
+  stuck_frames: 5
+  ocr_regions:
+    - {name: center, rect: [0.15, 0.15, 0.70, 0.70]}
+    - {name: bottom, rect: [0.10, 0.68, 0.80, 0.27]}
+  health_bar:
+    rect: [0.03, 0.03, 0.30, 0.08]
+    hsv_min: [0, 80, 60]
+    hsv_max: [12, 255, 255]

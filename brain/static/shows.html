@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>助手 · 栏目手记</title><link rel="stylesheet" href="/static/polls.css"><link rel="stylesheet" href="/static/shows.css"></head>
+<body><main><header><div><p class="eyebrow">让每一次相遇，接上下一页</p><h1>栏目手记</h1></div><nav><a href="/">对话</a> · <a href="/polls">投票</a> · <a href="/tasks">任务台</a></nav></header>
+<p id="connection" role="status">正在读取栏目…</p><p id="notice" role="status" aria-live="polite"></p>
+<section class="setup"><h2>塔罗茶会</h2><p>观众提问、亲自选牌，由助手结合已翻开的牌面解读。单牌或三牌，使用独立牌桌流程。</p><a href="/tarot">打开塔罗牌桌 →</a></section>
+<section id="start-panel" class="setup"><h2>开启一场直播</h2><form id="start-form"><label>本场主题<input id="theme" required maxlength="100" placeholder="例如：庭院里的第一场雪"></label><button class="primary">创建场次</button></form></section>
+<section id="active-panel" hidden><div class="show-heading"><div><p class="eyebrow">正在进行</p><h2 id="show-theme"></h2></div><div class="row"><button id="sync">更新作品状态</button><button id="end">收播并生成回顾</button><button id="end-unconfirmed" hidden>带未确认委托收播</button></div></div>
+<p id="unconfirmed-note" class="hint" hidden>还有提交尚未确认的委托。建议先点击卡片里的“核对提交”；也可带着未确认状态收播并保留记录。这不会取消可能已在后台执行的任务，之后请到任务台核对。</p>
+<p class="hint">每张卡片保存主题、投票决定、作品、命名和待办。绘画先出草稿，打开画布即可修改或确认上色。收播回顾只整理已记录的事实。</p>
+<section id="program-panel" class="setup" hidden><h3>本场节目单</h3>
+<p id="program-status" role="status">正在读取节目单…</p>
+<div class="row"><button id="program-enable" type="button">开启直播节奏</button><button id="program-disable" type="button">暂停直播节奏</button><a href="/show-stage?clean=1" target="_blank" rel="noopener">打开 OBS 栏目进度牌</a></div>
+<label>本轮栏目<select id="program-card"></select></label><div class="row"><button id="program-start" type="button">开始这张卡片</button><button id="program-next" type="button">下一环节</button><button id="program-finish" type="button">结束本轮栏目</button></div>
+<p id="program-poll-label" class="hint"></p><div class="row"><button id="program-attach" type="button">关联当前投票</button><button id="program-detach" type="button">解除投票关联</button><a href="/polls" target="_blank" rel="noopener">管理投票</a></div>
+<p class="hint">介绍 → 投票 → 草稿 → 讨论 → 命名，由你点击推进。不需要的环节可点“下一环节”略过；这些按钮不会发起投票、生成作品或批准上色。开启节奏后安排少量串词，并在 OBS 显示栏目主题。服务重启后需要重新开启。</p></section>
+<div id="cards"></div></section>
+<section class="setup" id="add-panel"><h2>准备栏目卡片</h2><form id="add-form">
+<div id="poll-panel" hidden><p id="poll-summary"></p><label>本次采用的选项<select id="poll-choice"></select></label><p id="poll-decision" class="hint"></p><button type="button" id="clear-poll">不关联这轮投票</button></div>
+<label>栏目主题<input id="card-title" required maxlength="100" placeholder="例如：观众委托所 · 雪夜的窗"></label>
+<label>绘画要求（可选，提交前可以修改）<textarea id="card-prompt" rows="5" maxlength="4000" placeholder="描述要画的内容；茶会等栏目也可以留空，只记录主题和待办。"></textarea></label>
+<button id="add-card" class="primary" disabled>保存卡片</button><p class="hint" id="add-hint">先创建本场直播，再保存卡片。也可从投票页的已结束投票生成委托。</p></form></section>
+<section><h2>往期手记 <small>最近 30 场</small></h2><div id="history"></div></section>
+</main><script src="/static/shows.js"></script><script src="/static/shows-program.js"></script></body></html>

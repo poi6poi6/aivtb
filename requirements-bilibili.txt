@@ -1,0 +1,4 @@
+-r requirements.txt
+# 固定官方源码，使用已验证的现代网络依赖；来源及元数据差异见 vendor/blivedm/PATCHES.txt。
+# PyPI 上同名的 0.1.x 不是本项目使用的库。
+./vendor/blivedm

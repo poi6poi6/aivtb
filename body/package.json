@@ -1,0 +1,14 @@
+{
+  "name": "ai-vtuber-body",
+  "version": "0.1.0",
+  "private": true,
+  "description": "mineflayer 游戏体：连接 Minecraft 服务器，通过 WebSocket 与 brain 通信",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "mineflayer": "^4.20.0",
+    "ws": "^8.18.0"
+  }
+}

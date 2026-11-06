@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>助手 · 塔罗茶会</title>
+  <script>if(new URLSearchParams(location.search).get('clean')==='1')document.documentElement.classList.add('clean');</script>
+  <link rel="stylesheet" href="/static/tarot.css">
+</head>
+<body><main>
+  <header class="host-only page-heading">
+    <div><p class="eyebrow">助手 · 今晚，把心事放在灯下</p><h1>塔罗茶会</h1></div>
+    <nav><a href="/shows">栏目手记</a><a href="/polls">观众投票</a><a href="/">回到对话</a></nav>
+  </header>
+  <p id="connection" class="connection" role="status">正在连接牌桌…</p>
+  <p id="notice" class="host-only notice" role="status" aria-live="polite"></p>
+  <div class="layout">
+    <aside class="host-only">
+      <section class="panel setup">
+        <p class="eyebrow">为这一轮点灯</p><h2>准备一次相遇</h2>
+        <form id="create-form">
+          <label>牌阵<select id="spread"><option value="single">一张牌 · 今晚的一点提醒</option><option value="three">三张牌 · 眼下、阻碍、可尝试的方向</option></select></label>
+          <label>参与方式<select id="mode"><option value="test">测试 · 本机模拟</option><option value="live">正式 · B站观众</option></select></label>
+          <label>主持方式<select id="hosting"><option value="guided">由她主持 · 确认问题、解读与收尾</option><option value="manual">手动推进 · 每一步由主播决定</option></select></label>
+          <button id="create" class="primary" disabled>开一桌茶会</button>
+        </form>
+        <p id="source-status" class="hint">正式茶会接收 B站弹幕；测试茶会仅使用下方本机报名。选择“由她主持”后，请来客入座会自动调用当前主人格与语音，测试场也会真实调用。开桌本身不说话。</p>
+      </section>
+      <section id="participants-panel" class="panel">
+        <div class="section-heading"><h2>灯下的来客</h2><span id="participant-count" class="small-label">0 人</span></div>
+        <p id="join-hint" class="hint">弹幕发送“塔罗 想聊的问题”。问题会公开上屏，每场每位观众一次，最多 30 位排队。</p>
+        <div id="participants" class="participants"><p class="hint">还没有报名。</p></div>
+        <form id="test-form" hidden>
+          <label>模拟观众称呼<input id="test-user" maxlength="30" value="夜归的旅人" required></label>
+          <label>想聊的问题<input id="test-question" maxlength="160" placeholder="例如：怎样让明天过得轻松一点？" required></label>
+          <button id="test-join" type="submit" disabled>添加测试报名</button>
+          <p class="hint">仅测试轮可用，不会向 B 站发送消息。</p>
+        </form>
+      </section>
+      <section class="panel output-help">
+        <h2>放到直播画面</h2>
+        <a id="overlay-link" class="text-link" href="/tarot?clean=1" target="_blank" rel="noopener">打开透明牌桌 ↗</a>
+        <p class="hint">OBS 浏览器源建议宽 1280、高 800。两页显示同一轮实际牌面；牌桌本身不播放声音。</p>
+      </section>
+    </aside>
+    <div class="table-column">
+      <section id="table" class="tarot-table" aria-label="当前塔罗牌桌">
+        <div class="table-heading"><div><p class="eyebrow">助手 · 塔罗茶会</p><h2 id="round-title">留一盏灯，等你来坐。</h2></div><span id="round-state" class="state-badge">尚未开桌</span></div>
+        <p id="round-meta" class="round-meta">一小段故事，一点面对明天的勇气。</p>
+        <p id="audience-instruction" class="audience-instruction"></p>
+        <p id="wait-clock" class="wait-clock" role="status" hidden></p>
+        <div id="card-choices" class="card-choices" aria-label="带编号的牌背" hidden></div>
+        <div id="cards" class="cards"><div class="empty-table"><span class="empty-moon" aria-hidden="true">☾</span><p>牌还没有翻开。<br>今晚的故事，由真实的这一轮开始。</p></div></div>
+        <p id="stage-note" class="stage-note"></p>
+        <footer class="table-footer"><span class="tiny-star" aria-hidden="true">✧</span><p>借牌面聊聊心事，不替你决定命运。仅作娱乐与自我整理。</p><span class="tiny-star" aria-hidden="true">✧</span></footer>
+      </section>
+      <section class="host-only panel host-controls">
+        <h2>这一轮的节奏</h2>
+        <p id="host-stage" class="hint" role="status"></p>
+        <form id="draw-form"><label>主播代选牌号<input id="positions" inputmode="numeric" maxlength="20" placeholder="例如：7；三张牌填写 3 12 18" required></label><button id="draw" type="submit" disabled>按这些牌号揭牌</button></form>
+        <form id="test-choose-form" hidden><label>模拟选牌的观众<input id="test-choose-user" maxlength="30" value="夜归的旅人" required></label><label>牌号<input id="test-positions" inputmode="numeric" maxlength="20" placeholder="例如：7" required></label><button id="test-choose" type="submit" disabled>提交测试选牌</button></form>
+        <form id="test-reply-form" hidden><label>模拟回应的观众<input id="test-reply-user" maxlength="30" value="夜归的旅人" required></label><label>确认问题或回应她<input id="test-reply-text" maxlength="160" placeholder="例如：对，我更担心自己总觉得画得不好。" required></label><button id="test-reply" type="submit" disabled>提交这位观众的回应</button><p class="hint">仅当前来客的回应会接入本轮。可发送“结束”提前收束。</p></form>
+        <section id="text-delivery" class="text-delivery" hidden><h3>这一段先以文字呈现</h3><p id="display-text"></p><p class="hint">请确认文字已通过角色字幕或你的转述让观众看到，再继续。这里不会把生成结束当成声音播完。</p><button id="confirm-delivered" disabled>已看完文字，继续</button></section>
+        <div class="action-row">
+          <button id="interpret" disabled>请她解读</button>
+          <button id="pause" disabled>暂停这一轮</button>
+          <button id="resume" disabled hidden>继续主持</button>
+          <button id="takeover" disabled>转为手动接管</button>
+          <button id="finish" disabled>结束这位的解读</button>
+          <button id="close" class="quiet-button" disabled>收起这桌茶会</button>
+        </div>
+        <p id="controls-hint" class="hint">由她主持时，你负责请来客入座，她会确认问题、等待选牌、解读并接住一次回应。等待从实际播完后开始；随时可暂停、跳过或转为手动。刷新不会重抽。</p>
+        <p class="hint">实际解读在<a href="/" target="_blank" rel="noopener">角色画面的字幕与声音</a>里播放，这张牌桌只同步牌面和进度。</p>
+      </section>
+      <section class="host-only panel history-panel"><h2>往期灯影</h2><div id="history"><p class="hint">还没有结束的轮次。</p></div></section>
+    </div>
+  </div>
+</main><script src="/static/tarot.js"></script></body>
+</html>

@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const {resultLabel,canConfirm}=require('../brain/static/rehearsal.js');
+let state={run_id:'current',running:false,automatic_passed:true,full_passed:false,steps:{microphone:{state:'pending'},obs_audio:{state:'pending'}}};
+assert(resultLabel(state).includes('仍需人工确认'));
+assert(canConfirm(state));
+assert(!canConfirm({...state,running:true}));
+assert(!canConfirm({...state,automatic_passed:false}));
+assert(!canConfirm({...state,run_id:null}));
+assert(!resultLabel({...state,full_passed:true}).includes('演练通过'));
+state.steps.microphone.state='passed';
+assert(!resultLabel({...state,full_passed:true}).includes('演练通过'));
+state.steps.obs_audio.state='passed';state.full_passed=true;
+assert(resultLabel(state).includes('含主播人工确认'));
+assert(!resultLabel({...state,running:true}).includes('演练通过'));
+assert(resultLabel({...state,full_passed:false,state:'needs_attention'}).includes('尚未通过'));
+console.log('PASS: rehearsal waits for both human checks and never treats running or partial results as passed');

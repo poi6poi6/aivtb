@@ -1,0 +1,7 @@
+{
+  "model": "",
+  "index": "",
+  "pitch": 0,
+  "index_rate": 0.5,
+  "separator_model": "bs_roformer_voc_hyperacev2"
+}

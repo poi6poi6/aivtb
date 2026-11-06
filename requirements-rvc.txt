@@ -1,0 +1,20 @@
+# RVC offline inference only, Python 3.12. Install CUDA Torch separately.
+torch==2.7.1+cu128
+torchaudio==2.7.1+cu128
+numpy>=1.26.4,<2
+av>=15.1,<16
+einops>=0.8,<1
+faiss-cpu>=1.13,<2
+ffmpeg-python>=0.2,<1
+imageio-ffmpeg>=0.6,<1
+librosa>=0.10.2,<0.11
+local-attention>=1.11,<2
+praat-parselmouth>=0.4.5,<1
+PyYAML>=6
+scipy>=1.13,<2
+soundfile>=0.13,<1
+transformers>=4.49,<4.50
+pymss==2.0.14
+pymss-core==0.1.4
+onnxruntime-gpu>=1.19.2,<1.20
+torchfcpe>=0.0.4,<0.1

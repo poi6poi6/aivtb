@@ -1,0 +1,74 @@
+%% Updated 2026-10-29 from current source; not a running-service inventory.
+flowchart TB
+    User["你：文字 / 麦克风"] --> Console["浏览器控制台<br/>聊天、点歌、运营、本地测试"]
+    Console <-->|"HTTP / WebSocket"| Web["Python WebUI<br/>127.0.0.1:8080"]
+    Web --> Dispatch["主控 brain.main<br/>事件队列、优先级、分流、打断"]
+
+    Services["应用服务 RuntimeServices<br/>生命周期、共享前台注意力、能力就绪状态"] -->|"提供服务，页面不持有其生命周期"| Web
+    Dispatch --> Context["统一上下文预算<br/>完整当前输入、角色提示、纠错与真实回执<br/>可选来源整块取舍、最终调用复验"]
+    Context --> Persona["主人格 Persona<br/>人设、回复规划、正文与情绪动作解析"]
+    Persona <-->|"DeepSeek API：主人格回复"| DeepSeek
+    Memory["记忆与人格<br/>短期上下文 / 观众档案<br/>长期时序记忆 / 关系与互动经验<br/>JSON、JSONL、SQLite"] --> Context
+    Search["联网搜索<br/>检索、缓存、结果摘要"] --> Context
+    %% Official 2026-10-17 update: https://api-docs.deepseek.com/zh-cn/updates/
+    DeepSeek["DeepSeek V4.1 Flash-1017<br/>API：deepseek-flash<br/>辅助意图识别、记忆抽取"] -.-> Dispatch
+    DeepSeek -.-> Memory
+
+    Persona -->|"分句正文、情绪、动作"| Speech["语音与播放调度<br/>逐句合成、队列、超时、取消"]
+    Speech <-->|"HTTP / WAV"| Index["本地 IndexTTS2 服务<br/>127.0.0.1:9890 · GPU"]
+    Services --> Ready["语音就绪监测<br/>后台加载，不阻塞文字核心"]
+    Ready -->|"未就绪：本轮仅文字"| Dispatch
+    Speech --> Render["浏览器播放与演出<br/>声音、字幕、Live2D<br/>音量与频谱驱动口型、眉眼和头部动作"]
+    Render -->|"开始、结束、中断回执"| Web
+    Web -->|"普通对话回执交由主控更新记忆与交付记录"| Memory
+
+    QQ["QQ 官方通道 / DSH<br/>已配对本人私聊、群聊 @"] --> Private["独立会话与话题<br/>群成员隔离、最终正文校验"]
+    Services --> QQ
+    Private --> Context
+    Private -->|"确认发送成功后后台固化"| PrivateMemory["QQ 本人私有长期记忆<br/>绑定 app + peer，群聊不可读<br/>不进入公共概念图"]
+    PrivateMemory -->|"相同 QQ 绑定 / 本机本人控制"| Context
+    QQ -->|"已接纳消息打断后台浏览"| Services
+    Dispatch -->|"网页 / 麦克风前台输入"| Services
+
+    Services --> Companion["CompanionFeatures<br/>图库、视觉、跟进、心情、日记、日程"]
+    Web <-->|"私有管理页 /companion"| Companion
+    Web -->|"本轮图片与问题"| Vision["AstraVision<br/>受限临时图片、结构化最终观察"]
+    QQ -->|"腾讯 CDN 单图、大小与格式校验"| Vision
+    Vision <-->|"Codex 套餐登录、临时线程、HTTP 流式"| Astra
+    Vision -->|"有界视觉资料，不作指令"| Context
+    Companion --> Memes["本地表情图库<br/>标签与情绪选图、停用/恢复"]
+    Memes -->|"网页表情 / QQ 一条图文"| Render
+    Memes --> QQ
+    Companion --> Followups["本地日程与主动跟进<br/>免打扰、限频、持久认领、取消与送达回执"]
+    Followups -->|"仅私有控制页在线，无 OBS/展示/直播输出"| Dispatch
+    Companion --> Journal["私人日记<br/>已送达对话摘录、身份隔离、遗忘屏障"]
+    Web -->|"播放完成；语音还需转写确认"| Journal
+    Journal -->|"明确请求且身份匹配"| Context
+    Memory -->|"持久心情按时间恢复"| Companion
+
+    Services --> Activity["B站自主活动<br/>官方 DeepSeek Harness 工具循环"]
+    Services -->|"前台输入取消当前浏览"| Activity
+    Activity <-->|"当前主人格配置、独立活动上下文"| Persona
+    Activity -->|"阅读 / 提案 / 已授权互动"| Bili
+    Activity -->|"公开见闻"| Context
+
+    Dispatch --> Media["点歌流程<br/>前端协调查询 + 后端角色口播"]
+    Media <-->|"歌名 / 真实搜索结果"| Bili["B站浏览器扩展<br/>读取官方页面 → 后端校验"]
+    Media -->|"确认与介绍：固定口播"| Speech
+    Media --> Player["本地音频或 B站官方播放器<br/>由浏览器输出声音"]
+
+    Dispatch --> Client["TaskClient<br/>提交任务、同步进度与结果"]
+    Client <-->|"本地 HTTP RPC"| Daemon["独立后台任务服务 :8085<br/>SQLite 队列、资源协调、产物验证"]
+    Daemon <-->|"Codex app-server · 订阅登录"| Astra["gpt-6-astra<br/>编程、研究、绘画等任务"]
+    Client -->|"任务结果进入对话"| Dispatch
+    Daemon -.-> Upgrade["自举升级模块<br/>隔离修改 → 测试 → 发布与回滚<br/>当前默认：proposal，仅建议"]
+
+    classDef cloud fill:#e7efff,stroke:#597ab0,color:#172744;
+    classDef local fill:#e5f2e9,stroke:#578a69,color:#173824;
+    classDef storage fill:#f3eddf,stroke:#a18855,color:#46381c;
+    classDef optional fill:#f0e8f7,stroke:#946fb2,color:#412957;
+    class DeepSeek,Astra cloud;
+    class Console,Web,Dispatch,Persona,Speech,Index,Render,Media,Client,Daemon local;
+    class Memory,Memes,Journal,Followups storage;
+    class Companion,Vision local;
+    class Upgrade optional;

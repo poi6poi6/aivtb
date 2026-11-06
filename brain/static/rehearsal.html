@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>开播演练 · 助手</title><link rel="stylesheet" href="/static/rehearsal.css"></head>
+<body><main><header><div><p class="eyebrow">助手 · 开播准备</p><h1>开播前，走一遍声音链路</h1></div><nav><a href="/">主控</a><a href="/runtime">运行状态</a></nav></header>
+<section class="intro"><p>会检查弹幕连接，让真实模型生成一句短句，再通过当前语音与主播放页播出。演练不计入观众互动或记忆。</p><p class="muted">请先打开主控或 OBS 主播放页并允许播放声音。正式发言、排队或模型忙碌时不能启动；本页不另开播放器。</p><div class="actions"><button id="start" disabled>开始一轮演练</button><button id="cancel" class="secondary" disabled>取消本轮</button></div><p id="notice" role="status" aria-live="polite"></p></section>
+<section><div class="section-head"><h2>本轮检查</h2><small id="run-time"></small></div><p id="result" role="status">正在连接主控…</p><ol id="steps"></ol></section>
+<section><h2>最后两项，由主播亲自检查</h2><p class="muted">浏览器的播放回执只说明播放流程完成。系统没有自动检测麦克风设备、扬声器听感或 OBS 音轨；两项人工确认都完成，才会显示本轮通过。</p>
+<div class="manual"><h3>麦克风与听感</h3><p>在你实际使用的麦克风与监听设备上试说一句，确认收音、识别与听感符合预期。</p><div><button data-field="microphone" data-passed="true" disabled>我已检查，正常</button><button class="secondary" data-field="microphone" data-passed="false" disabled>发现问题</button></div></div>
+<div class="manual"><h3>OBS 声音</h3><p>查看实际开播场景的电平与音轨，再用监听或短录制确认演练声音已进入 OBS，没有重复或漏音。</p><div><button data-field="obs_audio" data-passed="true" disabled>我已检查，正常</button><button class="secondary" data-field="obs_audio" data-passed="false" disabled>发现问题</button></div></div></section>
+</main><script src="/static/rehearsal.js"></script></body></html>

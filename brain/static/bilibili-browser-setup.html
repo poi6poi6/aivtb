@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>B站点歌助手 · 安装说明</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#14271f;color:#eee7d4;font:16px/1.8 system-ui,sans-serif}main{max-width:850px;margin:auto;padding:32px 24px 64px}h1,h2{font-family:serif;font-weight:500}h1{font-size:32px}h2{font-size:22px;margin-top:32px}p,li{color:#c7d1bf}a{color:#ead8a9}ol{padding-left:26px}li{padding:8px 0}code{overflow-wrap:anywhere;background:#20392d;padding:3px 7px;border-radius:5px}.actions{display:flex;gap:12px;flex-wrap:wrap}button,.button{display:inline-block;font:inherit;padding:10px 18px;border:1px solid #6f8065;border-radius:14px;background:#304836;color:#eee7d4;text-decoration:none;cursor:pointer}button:hover,.button:hover{background:#405c48}.note{border-left:3px solid #ccb882;padding:12px 18px;background:#20392d;border-radius:0 12px 12px 0}button:focus-visible,a:focus-visible{outline:3px solid #e4d6ac;outline-offset:4px}#copy-status{min-height:29px}
+  </style>
+</head>
+<body><main>
+  <a href="/">← 返回主控制台</a>
+  <h1>让她用你的浏览器找歌</h1>
+  <p>当前助手版本：<strong>1.3.0 点播字幕版</strong></p>
+  <p><strong>给 BV 号或 B站视频链接可以直接点播，不需要安装助手。</strong>要按歌名搜索，再安装浏览器助手并回到控制台连接，说“B站点歌 歌名”。</p>
+  <p class="note">助手会打开一个普通的 B站标签页读取视频标题和播放量。登录和验证由你在 B站页面完成，助手不会读取或导出你的登录凭据。</p>
+  <h2>安装到 Chrome 或 Edge</h2>
+  <ol>
+    <li><a href="/static/downloads/bilibili-browser-extension.zip?v=1.3.0" download>下载浏览器助手 1.3.0 ZIP</a>，解压到一个固定位置。之后不要移动或删除这个文件夹。</li>
+    <li>在浏览器地址栏打开 <code>chrome://extensions</code>（Chrome）或 <code>edge://extensions</code>（Edge），开启“开发者模式”。</li>
+    <li>点击“加载已解压的扩展程序”，选择解压后<strong>直接包含 manifest.json</strong> 的文件夹。</li>
+    <li>在<strong>装了助手的同一个浏览器</strong>打开本机控制台，按 <strong>Ctrl+F5</strong> 刷新。在“B站点歌”面板点击<strong>连接浏览器助手</strong>，看到连接成功后再点歌。</li>
+  </ol>
+  <div class="actions"><button type="button" data-copy="chrome://extensions">复制 Chrome 扩展页地址</button><button type="button" data-copy="edge://extensions">复制 Edge 扩展页地址</button><a class="button" href="/">回到控制台</a></div>
+  <p id="copy-status" role="status" aria-live="polite"></p>
+  <h2>已装过助手，怎样更新</h2>
+  <p>下载新版 ZIP，将文件解压覆盖到<strong>之前加载的扩展目录</strong>，再去扩展管理页点击该扩展的重新加载按钮。如果找不到旧目录，可移除旧扩展，再加载新的目录。只刷新控制台不会更新另一个目录里的扩展文件。</p>
+  <p>回控制台按 Ctrl+F5，点击“连接浏览器助手”，确认状态显示 <strong>1.3.0</strong>。使用新增点播字幕功能需主服务加载新版代码；无需因此重启 TTS。1.3.0 沿用 1.2.0 已有权限。</p>
+  <h2>点播视频后听她评价</h2>
+  <p>主控制台选定视频后，已连接的新版助手会读取所选分P的可用字幕。你想听评价时点击“听她评价”，再由当前主人格结合字幕给出看法；不会根据播放器加载时间假定视频已经播完。</p>
+  <p>读取最多 12,000 字、2,000 条字幕，超过上限会标为前段摘录。指定 P2 就只读 P2；无法确认分P或没有字幕时说明原因，不借 P1、热评或简介充当完整内容。这个流程不额外点赞、评论或发动态。</p>
+  <h2>让她自主浏览与整理动态</h2>
+  <p>在同一浏览器打开<a href="/bilibili-activity">B站自主活动</a>并保持该页面打开。先读取账号、填写允许发布的 UID、保存设置，再点击“立即逛一次”。自动浏览和自动发布默认关闭，可以先查看见闻和草稿再决定是否开启。</p>
+  <p>新版可读取视频简介、第一 P 可取得的字幕与热评，明确标注字幕是否完整；也能保存阅读日记，并在网页或 QQ 聊天中回忆相关见闻。没有可用字幕时保留简介或可见字幕，不代表看完视频。</p>
+  <p>点赞与评论各有开关，默认关闭；开启后她可在每轮浏览结束执行一条建议，受指定账号与每日互动额度限制。动态和互动提交后都核验回执，结果不明时只能核验，不能重发。登录和页面验证仍由你完成。</p>
+  <h2>点歌时会发生什么</h2>
+  <p>按歌名点歌时，她先回应，再让助手打开 B站查询。读到结果后，她会介绍选中的视频，等介绍声音播完再在控制台打开播放器。助手查询标签页保持静音，避免视频抢先出声。</p>
+  <p>给 BV 号时，她回应后会说“就放你指定的这个视频，来一起听吧”，播完介绍再打开官方播放器，不等待助手读取标题。独立播放器可直接打开 BV 视频。</p>
+  <p>如果 B站要求登录或验证，请在助手打开的 B站标签页处理，再回控制台重新点歌。遇到播放量相近、无法确认排序的版本，会留下结果卡片让你选择。</p>
+  <h2>找到了结果，却没有自动播放</h2>
+  <p>先看结果卡片上的播放量。若全部显示未读到，说明助手没有取得统计，不代表这些视频播放量低。部分统计缺失或排名不能确认时，可手选结果卡片上的“播放这个版本”，她仍会先介绍这个视频再播放。</p>
+  <p class="note"><strong>点击“查看 B站原始搜索页”</strong>会在新标签页打开本次关键词的官方搜索结果，方便检查页面上的统计；<strong>这不是控制台用来播放视频的播放器</strong>。旧助手 1.0.3 也能使用这个入口。</p>
+  <p>缺失统计时，展开<strong>“播放量读取诊断”</strong>查看最多 2 张结果卡的统计组件结构和数字。诊断不含搜索词、标题、作者或 cookie，也不持久化保存。该诊断需要助手 1.0.4；确认版本后，请结合原始搜索页与诊断排查，不必反复更新或重启。1.0.4 提供定位依据，并不代表当前页面的播放量问题已经修好或真实浏览器验证已通过。</p>
+  <h2>连不上时</h2>
+  <p>确认扩展已启用，控制台地址为 <code>http://127.0.0.1:端口</code> 或 <code>http://localhost:端口</code>。更新扩展文件后，在扩展管理页点击该扩展的重新加载按钮，再刷新控制台并重新连接。若自主活动入口尚未出现，或提示服务未启动，请重启项目主服务以加载新代码。</p>
+  <p>主控制台提供角色回应；<a href="/bilibili">独立播放器</a>只负责选片和播放。浏览器限制有声自动播放时，需要点击一次播放器。</p>
+  <script>
+    document.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click', async () => {
+      const value = button.dataset.copy;
+      const status = document.getElementById('copy-status');
+      try { await navigator.clipboard.writeText(value); status.textContent = '已复制，请粘贴到浏览器地址栏打开。'; }
+      catch (_) { status.textContent = '请手动复制到地址栏：' + value; }
+    }));
+  </script>
+</main></body></html>

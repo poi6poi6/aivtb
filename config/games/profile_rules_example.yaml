@@ -1,0 +1,18 @@
+name: 游戏专用状态动作示例
+strategy: profile_rules
+long_term_goal: 按该游戏的已校准规则安全完成操作
+controls: {}
+recognition:
+  death_keywords: [失败, game over, retry]
+  menu_keywords: [pause, settings]
+  interact_keywords: [交互, confirm, press]
+  ocr_regions:
+    - {name: center, rect: [0.10, 0.10, 0.80, 0.80]}
+# 每次决策最多执行一个动作。键盘仍受 settings.yaml 的 allowed_keys 限制；
+# 鼠标/手柄还需要分别打开 allow_mouse/allow_gamepad。
+state_actions:
+  dead: {kind: key, key: enter, duration_ms: 80, reason: 重新开始}
+  interaction_available: {kind: mouse_click, x: 0.50, y: 0.72, button: left, reason: 点击已校准的交互按钮}
+  low_health: {kind: gamepad_button, button: b, duration_ms: 90, reason: 使用手柄取消或后撤}
+  menu: {kind: wait, reason: 菜单交给人工处理}
+  default: {kind: wait, reason: 没有匹配的安全规则}

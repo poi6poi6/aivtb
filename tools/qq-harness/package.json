@@ -1,0 +1,10 @@
+{
+  "name": "vtuber-qq-harness-bridge",
+  "private": true,
+  "type": "module",
+  "engines": {"node": "^22.19.0 || >=24.0.0", "dsh": "0.2.1-rc.2"},
+  "dependencies": {
+    "@tencent-connect/qqbot-connector": "1.2.0",
+    "@tencent-connect/qqbot-nodejs": "1.0.5"
+  }
+}

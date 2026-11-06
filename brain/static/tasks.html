@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>助手 · 后台任务</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#14271f;color:#e8ddbd;font:16px/1.65 system-ui}main{max-width:1100px;margin:auto;padding:32px 24px}header{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid #637460;padding-bottom:20px}h1{font:28px Georgia,serif;letter-spacing:3px}a{color:#e8ddbd}section,article{background:#203b30;border:1px solid #59715d;border-radius:20px;padding:22px;margin:20px 0}textarea,input,select,button{font:inherit;color:inherit;background:#142e24;border:1px solid #78856b;border-radius:12px;padding:10px 16px}textarea{width:100%;min-height:100px;resize:vertical}button{cursor:pointer}button:hover{background:#365644}button:disabled{opacity:.45;cursor:wait}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.primary{background:#e8ddbd;color:#233c2f}small,.muted{color:#b5c1aa}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.6 system-ui}#notice{min-height:28px}article img{max-width:100%;max-height:420px;border-radius:12px;display:block;margin-top:15px}.badge{padding:3px 12px;border-radius:20px;background:#42624c}h2{font-size:19px}footer{margin-top:30px;font-size:13px}.danger{border-color:#be8c79}
+.settings-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.settings-grid label{display:grid;gap:6px}.settings-grid input{width:100%}.self-upgrade-policy>label{display:block;margin:12px 0}.self-upgrade-policy select{width:100%}.issue-list article{margin:12px 0;padding:16px;background:#193127}.issue-list h3{font-size:16px;margin:8px 0}.issue-list p{margin:8px 0}#self-upgrade-notice{min-height:28px}#self-upgrade-events{max-height:220px;overflow:auto}.self-upgrade-policy textarea{min-height:88px}#self-upgrade-submit{margin-top:16px}@media(max-width:650px){.settings-grid{grid-template-columns:1fr}main{padding:18px 12px}header{align-items:flex-start}h1{font-size:23px}}
+</style>
+<main><header><h1>✳ 助手 · 幕后工作室</h1><a href="/">回到对话</a></header>
+<section><div class="row"><strong>助手 · 独立任务服务</strong><button id="check">检查套餐连接</button><button id="stop" class="danger">停止全部任务</button><button id="release-stale" hidden>释放失联资源</button></div><p id="account" class="muted">Astra 仅使用 Codex 的 ChatGPT 套餐登录，不自动切换付费 API。一次执行一项任务。关闭对话界面后，后台任务仍继续。</p></section>
+<section id="self-upgrade"><div class="row"><h2>系统自我改进</h2><span class="badge" id="self-upgrade-mode-label">仅记录改进方案</span><button id="self-upgrade-scan" type="button">检查可改进问题</button><button id="self-upgrade-stop" type="button" class="danger">停止自举</button></div>
+<p class="muted">使用已登录的 ChatGPT 套餐调用 Astra。额度不足即停止，不购买额度，也不切换付费 API。可用性与剩余额度可用上方“检查套餐连接”查看。</p>
+<p id="self-upgrade-quota" class="muted">尚未取得套餐剩余额度。</p>
+<p id="self-upgrade-stage" role="status">正在读取自举状态…</p><p id="self-upgrade-release" class="muted"></p>
+<details><summary>运行方式与允许修改的范围</summary><form id="self-upgrade-configure" class="self-upgrade-policy">
+<label for="self-upgrade-mode">运行方式</label><select id="self-upgrade-mode"><option value="proposal" selected>仅记录改进方案</option><option value="develop">自动开发，等待应用</option><option value="auto">在指定范围内自动升级</option></select>
+<p id="self-upgrade-mode-help" class="muted">收集问题和改进目标，不自动调用 Astra 或修改代码。</p>
+<label for="self-upgrade-paths">允许修改的文件或目录（每行一项，目录以 / 结尾）</label><textarea id="self-upgrade-paths" maxlength="4000" placeholder="例如：brain/static/face.js&#10;docs/" spellcheck="false"></textarea>
+<p class="muted">默认未授权任何路径。自动开发和升级都需要明确范围；审核与升级控制、凭据、依赖、模型和运行数据不在自动应用范围内。</p>
+<div class="settings-grid"><label>每个问题最多尝试<input id="self-upgrade-attempts" type="number" min="1" max="3" value="2" required></label><label>最近 24 小时最多开发任务<input id="self-upgrade-daily" type="number" min="1" max="10" value="3" required></label><label>至少保留套餐额度（%）<input id="self-upgrade-remaining" type="number" min="5" max="50" value="20" required></label></div>
+<p><button class="primary" type="submit">保存运行设置</button></p></form></details>
+<form id="self-upgrade-submit"><label for="self-upgrade-prompt">添加一个改进目标</label><textarea id="self-upgrade-prompt" maxlength="1800" required placeholder="描述遇到的问题、希望怎样变化，以及如何确认修复有效。"></textarea><button type="submit">提交改进目标</button></form>
+<p id="self-upgrade-notice" role="status" aria-live="polite"></p><div id="self-upgrade-issues" class="issue-list"></div>
+<details><summary>最近执行记录</summary><ol id="self-upgrade-events"></ol></details>
+<p class="muted">开发完成不代表运行版本已更新。独立验收通过后才可升级；自动模式还会等待服务空闲。升级后的服务检查不能替代实际听音、操作和直播验收。</p></section>
+<section><h2>交给她一件事</h2><form id="submit"><textarea id="prompt" maxlength="4000" required placeholder="例如：画一张夜晚的灯塔的插画"></textarea><div class="row"><select id="kind"><option value="drawing">逐笔手绘</option><option value="image">生成插画</option><option value="research">查询与整理</option><option value="code">开发与修复代码</option><option value="desktop">桌面操作</option></select><select id="resource-profile" aria-label="任务资源"><option value="standard">普通任务（可与聊天并行）</option><option value="local_gpu">本地显卡推理或训练</option></select><select id="execution-mode" aria-label="任务执行方式"><option value="auto">自动（直接交给 Astra）</option><option value="omp">OMP 兼容调度</option></select><button class="primary">加入队列</button></div></form><p class="muted">代码任务在独立源码副本开发，完成后查看逐行改动和测试记录，确认后应用文件；服务重启与功能生效另外确认。桌面和图像能力以执行环境实际提供的工具为准。</p></section>
+<section><h2>工具目录</h2><button id="tools-check">查看可用工具</button><pre id="tool-schema"></pre><form id="tool-form"><select id="tool-name"></select><textarea id="tool-args" placeholder='参数 JSON，例如 {"query":"花园"}'>{}</textarea><button>执行所选工具</button></form><pre id="tool-result"></pre></section>
+<p id="notice" role="status"></p><div id="jobs"></div><footer>助手 / 互动直播间 · 此界面仅供本机管理</footer></main>
+<script src="/static/tasks.js?v=self-upgrade-1"></script></html>
+

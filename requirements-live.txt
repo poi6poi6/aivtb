@@ -1,0 +1,8 @@
+-r requirements.txt
+pyvts>=0.3
+mss>=9.0
+opencv-python>=4.8,<5
+# IndexTTS2 / onnxruntime / scipy 等现有推理依赖仍要求 NumPy 1.x。
+numpy>=1.24,<2
+pywin32>=306
+pytesseract>=0.3.10

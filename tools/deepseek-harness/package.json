@@ -1,0 +1,12 @@
+{
+  "name": "vtuber-deepseek-harness-bridge",
+  "private": true,
+  "type": "module",
+  "engines": {"node": "^22.19.0 || >=24.0.0", "dsh": "0.2.1-rc.2"},
+  "dependencies": {
+    "@deepseek-ai/dsh": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-sdk-client": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2"
+  }
+}

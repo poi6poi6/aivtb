@@ -1,0 +1,21 @@
+{
+  "repository": "https://github.com/xfgryujk/blivedm",
+  "commit": "3bf17fe862b8c2fc6bc04c81c3f0c5db95de93d6",
+  "archive_sha256": "a5532dcab0a71261ec2f3a701725af121f660a456a10e04dda905ddda4be9d36",
+  "files": {
+    "LICENSE": "2a07a2e21ac1a4de3a3530caa08c7f2cf3d3577fe5fa5c94b691529141418b50",
+    "README.md": "bde5aa170c1ebebe7b4979c11d259e3b246ea332aa5af7f4567317ba16115660",
+    "blivedm/__init__.py": "e1d2e4aa477b72fceefaac803666276cdfc8b614239b467b97bef41c3a342679",
+    "blivedm/clients/__init__.py": "f75b8721435763ea1446dcfa41f6a06e32df6dd387ae996bc79c7c96b464bec9",
+    "blivedm/clients/open_live.py": "b9a57fe81c36bdf976c4e6f815a5d3a5e165cff4b37055a078c0ba8dd3322fec",
+    "blivedm/clients/web.py": "337b6183c0953811836247fff67823f8dd195252fd8e447901853e439e756576",
+    "blivedm/clients/ws_base.py": "4a206f4aab7470da6dd47a5fc54ee191eded3d1bd16a501ea306f86c98ee6d59",
+    "blivedm/handlers.py": "b5f899d658cb757345871bd02367b2e00ca2c400012b06b5a930683d0ad5ab49",
+    "blivedm/models/__init__.py": "8b084a9f378124b2b1a51563bf3c22444eb7ff33692017da28b2136ae56987ed",
+    "blivedm/models/open_live.py": "35e2780f5cd164d02b07fa51dc8c29a10eb4f52ccf95b1b289f8d10bcae75599",
+    "blivedm/models/pb.py": "c8d9e31ba7b4e62e8302bb900ff3fb3ea46e62e9f98bd80577c3d68ab089c811",
+    "blivedm/models/web.py": "77c2fa23448555eb2036160b4b52cb179e78f5c5b40ee359d33244d65446006d",
+    "blivedm/utils.py": "8c5012d19bb6d8ceb1970976d30f54eeabd9704e1c5e629c9210c9511632d25d",
+    "pyproject.toml": "f6fcba999abe07c90c88587ab7d9887d3206a88c4525f4726492dd1d3fb01847"
+  }
+}

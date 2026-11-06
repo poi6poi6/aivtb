@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>助手 · 栏目投票</title><link rel="stylesheet" href="/static/polls.css"></head>
+<body><main>
+<header class="host-only"><div><p class="eyebrow">助手 · 一起决定今晚的故事</p><h1>栏目投票</h1></div><nav><a href="/shows">栏目手记</a> · <a href="/">回到对话</a></nav></header>
+<p id="connection" role="status">正在连接投票统计…</p>
+<p id="source-status" class="host-only hint">正在读取 B 站连接状态…</p>
+<div class="layout">
+<section class="host-only setup"><h2>发起一轮投票</h2>
+<form id="create-poll">
+<label>栏目灵感<select id="preset"><option value="commission">观众委托所</option><option value="garden">庭院连载</option><option value="tea">旧物茶会</option><option value="challenge">互动小挑战</option><option value="custom">自定义</option></select></label>
+<label>栏目名称<input id="program" required maxlength="30" value="观众委托所"></label>
+<label>这次一起决定什么<input id="question" required maxlength="100" value="画里的窗外，选雪还是雨？"></label>
+<label>选项 · 每行一个，2–6 项<textarea id="options" required rows="5" maxlength="250">雪
+雨</textarea></label>
+<div class="row"><label>时长（秒）<input id="duration" type="number" min="15" max="3600" step="1" value="180" required></label>
+<label>参与方式<select id="mode"><option value="live">正式 · B站弹幕</option><option value="test">测试 · 本机模拟</option></select></label></div>
+<p class="hint">发送“投票 1”参与。每个账号一票，截止前再次投票可更换选项。纯数字不会被误计为票。</p>
+<button id="create" class="primary">开始投票</button>
+</form></section>
+<div class="stage">
+<section id="current" class="poll-card" aria-label="当前投票"><p class="empty">还没有投票，准备好后发起第一轮吧。</p></section>
+<div class="host-only">
+<div class="row controls"><button id="announce" disabled>播报规则 / 结果</button><button id="close" disabled>结束并统计</button><button id="cancel" disabled>取消本轮</button></div>
+<p id="notice" role="status" aria-live="polite"></p>
+<form id="test-vote" hidden><h3>模拟观众参与</h3><p class="hint">同一个测试名字重复投票会改票。正式票与测试票分轮保存。</p><div class="row"><label>测试名字<input id="test-user" maxlength="40" value="测试观众1" required></label><label>选项编号<input id="test-choice" type="number" min="1" max="6" value="1" required></label><button id="test-submit">提交测试票</button></div></form>
+<p class="hint">OBS 浏览器源：<a id="overlay-link" href="/polls?clean=1" target="_blank" rel="noopener">打开透明投票画面</a>，建议宽 720、高 900。画面随主控更新，不播放声音。</p>
+<p class="hint">正式计票需要收到带稳定账号标识的 B 站弹幕；无法识别账号的消息不计票。</p>
+</div></div></div>
+<section class="host-only"><h2>往期投票 <small>最近 20 轮</small></h2><div id="history"><p class="hint">暂无历史记录</p></div></section>
+</main><script src="/static/polls.js"></script></body></html>

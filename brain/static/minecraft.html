@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>助手 · Minecraft</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#172a22;color:#eee7d4;font:16px/1.8 system-ui}main{max-width:1050px;margin:40px auto;padding:0 24px}h1{font-family:serif;font-weight:400;letter-spacing:4px}section{padding:24px;border:1px solid #566a53;background:#223b30;border-radius:24px;margin:20px 0}.row{display:flex;gap:12px;flex-wrap:wrap}button,input{font:inherit;border:1px solid #718168;border-radius:14px;padding:10px 20px;background:#304c3b;color:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}.primary{background:#e6dab8;color:#22392e}.stop{border-color:#d89982;color:#ffd9c9}small{color:#b9c8b5}#facts{white-space:pre-wrap}li{margin:10px 0}a{color:#e6dab8}#notice{min-height:30px;color:#e5c891}
+</style>
+<main><h1>✳ 助手 · 一起探索</h1><p>从第一块原木，到挑战末影龙。</p>
+<section><h2>她眼中的世界</h2><p><a id="first-person" href="http://127.0.0.1:3007/" target="_blank" rel="noopener">打开第一视角 ↗</a></p><small>连接游戏后可观看。镜头跟随助手的位置和朝向；网页重建游戏画面，不包含原版完整界面和游戏声音。</small></section>
+<section><h2>长期目标 · 生存模式击败末影龙</h2><p id="campaign-progress">连接游戏后读取本世界进度。</p><div class="row"><button class="primary" data-action="campaign">开始 / 继续通关</button><button data-action="campaign_retry">处理卡点后重试</button><button data-action="respawn">死亡后重生</button></div><p><small>实验性通关流程，尚未完成真实世界端到端验证。每一步以游戏回执为准；卡点会保存并暂停。暂停后需手动继续。</small></p></section>
+<section><div class="row"><button class="primary" data-action="connect">连接游戏</button><button class="stop" data-action="stop">暂停动作</button><button data-action="disconnect">断开连接</button></div><p id="notice" role="status"></p><div id="facts">正在读取状态…</div></section>
+<section><h2>这次做什么</h2><div class="row"><button class="primary" data-action="auto">自主开局 · 制作工作台</button><button data-action="observe">观察周围</button><button data-action="wood">采一块原木</button><button data-action="planks">合成木板</button><button data-action="craft">合成工作台</button></div><p class="row"><input id="target" placeholder="你的游戏玩家名" maxlength="16" aria-label="跟随的游戏玩家名"><button data-action="follow">靠近这个玩家</button></p><small>自主开局是基础任务流程，目前遇到找不到树、无法到达或血量过低会暂停。每次任务最长 60 秒。</small></section>
+<section><h2>照顾好自己</h2><div class="row"><button data-action="eat">吃点东西</button><button data-action="equip">穿戴装备</button><button data-action="recover">恢复血量</button><button data-action="water">装一桶水</button><button data-action="home_return">回据点</button><button data-action="explore">探索附近</button></div></section>
+<section><h2>实际发生了什么</h2><ol id="history"></ol><small>这里只显示游戏回执。角色语音由主界面播放，请保持主界面打开。</small></section>
+<p>游戏里通过「多人游戏 → 直接连接」进入 <strong>127.0.0.1:25565</strong>，就能看见 Avatar。<a href="/" target="_blank" rel="noopener">打开角色主界面</a></p>
+</main><script src="/static/minecraft.js"></script></html>

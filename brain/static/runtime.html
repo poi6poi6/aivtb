@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>运行状态 · 助手</title><link rel="stylesheet" href="/static/runtime.css"></head>
+<body><main>
+<header><div><p class="eyebrow">助手 · 直播后台</p><h1>运行状态与音频收藏</h1></div><nav><a href="/">回到主控</a><a href="/shows">栏目手记</a><a href="/polls">栏目投票</a></nav></header>
+<section class="summary"><strong id="health" role="status">正在读取运行状态…</strong><p id="health-detail">检查后台工作任务和保存状态。</p><a href="/rehearsal">开播前，进行一次演练</a></section>
+<section><h2>功能就绪状态</h2><p class="muted">文字核心与语音、QQ、浏览器助手分别启动。语音加载期间可先使用文字聊天。</p><div id="capabilities" class="rows"></div></section>
+<section><h2>直播应急</h2><p id="recovery-status" role="status">正在读取…</p><p id="standby-status"></p><p class="muted">等待过久时会显示提示。连续失败后暂缓自动接话，冷却后允许新的回复重试。可提前用当前音色准备应急提示音，故障时无需再次合成。</p><button id="prepare-standby" type="button">准备当前音色提示音</button><p id="recovery-notice" role="status"></p></section>
+<div class="columns"><section><h2>后台任务</h2><div id="workers" class="rows"></div><p id="tasks-note"></p></section>
+<section><h2>状态保存</h2><div id="stores" class="rows"></div><p id="connections" class="muted"></p></section></div>
+<section><h2>响应耗时</h2><p class="muted">最近样本的 P95。首音依据浏览器播放回执；不代表实际扬声器出声时间。</p><div id="latency" class="metrics"></div><a href="/experience-report" download="companion-experience.json">导出本次体验指标</a></section>
+<section id="memory-inspection"><h2>本轮记忆与回复策略</h2><p class="muted">仅主控可见。这里显示记忆选择和回答策略，不是模型内部思考；被选中不代表最终回复一定采用。修改或忘记后，旧摘要将不再展示。</p><p id="context-status" role="status">尚未处理对话。</p><div id="context-sources" class="rows"></div><p id="reply-plan"></p><div id="recalled-memories" class="rows"></div><p id="recall-rejections" class="muted"></p><p id="delivery-audit" class="muted"></p></section>
+<section><div class="section-head"><h2>临时语音</h2><button id="refresh-audio" type="button">刷新列表</button></div><p id="retention" class="muted">正在读取保留策略…</p><p>收藏的语音会保留。正在播放、排队、新生成及参考音频受到保护。试听仅在此页面播放。</p><p id="audio-notice" role="status"></p><div id="audio-list" class="audio-list"></div></section>
+</main><script src="/static/runtime.js"></script></body></html>

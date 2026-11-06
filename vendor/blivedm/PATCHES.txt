@@ -1,0 +1,25 @@
+Local packaging compatibility patch: blivedm 1.1.7+vtuber.1
+
+Upstream: https://github.com/xfgryujk/blivedm
+Commit: 3bf17fe862b8c2fc6bc04c81c3f0c5db95de93d6
+License: MIT (LICENSE retained).
+upstream.json records the downloaded archive and original file SHA-256 hashes.
+
+All Python source files are unmodified upstream files. Only pyproject.toml
+changes the distribution version and dependency ranges:
+  aiohttp: ~=3.9.0 -> >=3.14.1,<3.15
+  Brotli:  ~=1.1.0 -> >=1.2.0,<1.3
+  yarl:    ~=1.9.3 -> >=1.24.2,<1.25
+pure-protobuf keeps the upstream range.
+
+This avoids downgrading the shared application's existing HTTP stack merely
+to satisfy old upstream metadata. The narrow ranges cover the locally tested
+minor versions; widening them requires running tests/test_bilibili_transport.py
+and the full application suite. Tests cover local WebSocket lifecycle,
+compressed packet decoding, URL/cookie handling and account identity delivery.
+They do not establish live Bilibili availability or account authentication.
+
+Install from the repository root:
+  .venv\Scripts\python.exe -m pip install -r requirements-bilibili.txt
+
+Do not edit installed dist-info metadata or install the unrelated PyPI package.

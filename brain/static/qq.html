@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
+<title>助手 · QQ 聊天</title><link rel="stylesheet" href="/static/qq.css"></head>
+<body><main id="qq-page">
+<header><div><p class="eyebrow">换个地方，继续聊</p><h1>QQ 聊天</h1><p class="intro">在手机上，和同一个她说说话。</p></div><a href="/">回到对话</a></header>
+<p id="connection" role="status">正在读取本机状态…</p><p id="notice" role="status" aria-live="polite"></p>
+<section aria-labelledby="status-title"><div class="section-heading"><h2 id="status-title">现在的连接</h2><span id="phase" class="badge">尚未读取</span></div>
+<p id="status-detail">第一次使用，先连接机器人；私聊还需要确认你的身份。</p><p id="service-error" role="alert" hidden></p>
+<a id="pair-next" class="next-step" href="#pairing-step" hidden>继续完成第二步：让她认出你 ↓</a>
+<dl class="status-grid"><div><dt>私聊身份</dt><dd id="owner-status">尚未配对</dd></div><div><dt>最近处理</dt><dd id="last-activity">尚未处理消息</dd></div><div><dt>累计处理</dt><dd id="counts">已处理 0 · 回复 0</dd></div></dl>
+<div class="actions"><button id="refresh" type="button">刷新状态</button><button id="disconnect" type="button" disabled>断开连接</button></div></section>
+<section aria-labelledby="connect-title"><p class="step">第一步</p><h2 id="connect-title">连接 QQ 机器人</h2><p>打开腾讯绑定页面，用 QQ 扫码并按提示完成授权。已有绑定时，可以直接重新连接。</p>
+<div class="actions"><button id="bind" class="primary" type="button" disabled>开始扫码绑定</button><button id="connect" type="button" disabled>重新连接</button></div>
+<div id="binding-panel" class="callout" hidden><p>绑定页面已准备好。完成扫码后，这里会自动更新状态。</p><a id="binding-link" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">打开 QQ 扫码绑定页 ↗</a></div>
+<p id="account-status" class="hint">尚未读取绑定状态。</p></section>
+<section id="group-panel" aria-labelledby="group-title" hidden><h2 id="group-title">在群里找她说话</h2><p id="group-status">连接后，把机器人加入 QQ 群，发文字时 @ 她即可。</p><p class="hint">群聊无需身份配对。她只回应 @ 她的文字消息，不会回应普通群消息，也暂不支持语音输入。</p><p class="hint">群聊中的对话按群和成员分别记录，不会带入你的私聊或长期记忆。</p><p id="group-count" class="hint">当前活跃 0 段群聊对话。</p></section>
+<section id="pairing-step" aria-labelledby="pair-title"><p class="step">第二步 · 仅私聊需要</p><h2 id="pair-title">让她认出你</h2><p>填入你在主页面聊天时使用的称呼，再把配对码私聊发给机器人。配对成功后，你们就能开始私聊。</p><p class="hint">没有改过主页面称呼时，填“你”。首次配对前，直接私聊发“你好”等普通消息不会得到回复。</p>
+<form id="pair-form"><label for="owner-name">你的聊天称呼</label><div class="pair-input"><input id="owner-name" type="text" maxlength="40" autocomplete="nickname" placeholder="与主页面的称呼保持一致" required disabled><button id="pair" class="primary" type="submit" disabled>生成配对码</button></div></form>
+<div id="pair-panel" class="callout" hidden><p>请用你自己的 QQ，把下面整段配对码发送给机器人：</p><code id="pair-code"></code><p id="pair-expiry" class="hint"></p></div>
+<p id="pair-status" class="hint">连接机器人后，就可以生成配对码。</p><button id="unpair" type="button" disabled>解除身份绑定</button></section>
+<section aria-labelledby="reply-title"><h2 id="reply-title">回复方式</h2><p>想看她打字，还是听她说话？切换后，从下一条消息开始生效。</p><p id="reply-scope" class="hint" hidden>私聊和群聊共用此设置。</p>
+<div class="reply-options" role="group" aria-labelledby="reply-title" aria-describedby="reply-hint"><button id="reply-text" type="button" aria-pressed="true" disabled>文字</button><button id="reply-voice" type="button" aria-pressed="false" disabled>语音</button></div>
+<p id="reply-hint" class="hint" role="status">正在读取回复方式…</p><p class="hint">语音生成失败或内容过长时，会改发文字。切换不会影响已有配对。</p></section>
+<section aria-labelledby="conversation-title"><h2 id="conversation-title">你们的私聊</h2><p>QQ 私聊沿用她的人格和你的长期记忆，单独记录当前话题。回复会回到 QQ，主页面不会朗读这段私聊。</p><p class="hint">私聊仅回应完成配对的 QQ 身份，接收文字输入。新内容暂只保存在独立对话记录中。</p><button id="reset" type="button" disabled>开始一段新私聊</button><p class="hint">清空 QQ 私聊当前对话与话题，保留已有长期记忆。</p></section>
+<footer>仅供本机管理。关闭此页面后，主服务运行期间仍可接收 QQ 消息。</footer>
+</main><script src="/static/qq.js?v=20261024-final"></script></body></html>

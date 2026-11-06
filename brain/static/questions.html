@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>助手 · 待答问题</title><link rel="stylesheet" href="/static/polls.css"><link rel="stylesheet" href="/static/questions.css"></head>
+<body><main><header><div><p class="eyebrow">把想认真回答的事，留在眼前</p><h1>待答问题</h1></div><nav><a href="/">对话</a> · <a href="/shows">栏目手记</a> · <a href="/runtime">运行状态</a></nav></header>
+<p id="connection" role="status">正在连接主控…</p><p id="notice" role="status" aria-live="polite"></p>
+<section><h2>记下一道问题</h2><form id="manual-form"><label>主播手填<textarea id="manual-text" required maxlength="1000" rows="3" placeholder="也可以在主控消息旁点击“固定待答”。"></textarea></label><button class="primary" id="manual-add" disabled>加入待答</button></form><p class="hint">只保存你选中的问题。点击“现在回答”后，通过正常对话和语音流程回答，完整播完才记为已答。</p></section>
+<section><div class="row"><h2>问题卡片</h2><label class="filter">查看<select id="filter"><option value="active">待处理</option><option value="waiting">待答</option><option value="answering">正在答</option><option value="parked">暂放</option><option value="answered">已答</option><option value="withdrawn">已撤回</option><option value="all">全部</option></select></label></div><p id="counts" class="hint"></p><div id="cards"></div></section>
+</main><script src="/static/questions.js"></script></body></html>

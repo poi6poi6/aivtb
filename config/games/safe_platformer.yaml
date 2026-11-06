@@ -1,0 +1,16 @@
+name: 安全横版平台策略
+strategy: safe_platformer
+long_term_goal: 向右探索关卡，避开停滞，在失败画面出现时等待并尝试重新开始
+controls:
+  forward: right
+  back: left
+  jump: space
+  confirm: enter
+recognition:
+  death_keywords: [失败, game over, you died, retry, restart]
+  menu_keywords: [settings, options, pause, paused]
+  low_health_threshold: 0.15
+  stuck_motion_threshold: 1.4
+  stuck_frames: 4
+  ocr_regions:
+    - {name: full, rect: [0.05, 0.05, 0.90, 0.90]}

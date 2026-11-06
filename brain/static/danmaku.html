@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>助手 · 直播弹幕</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:transparent;color:#f3efdf;font-family:'Microsoft YaHei',sans-serif;height:100%;overflow:hidden}
+body{padding:16px}main{height:100%;display:flex;flex-direction:column;border:1px solid #e2e8ce33;border-radius:26px;background:linear-gradient(145deg,#304a3bea,#14271feb);overflow:hidden}
+header{display:flex;align-items:center;gap:12px;padding:22px 26px;border-bottom:1px solid #e2e8ce26}header b{color:#e6c995;font-size:32px}h1{font:24px 'Songti SC',SimSun,serif;letter-spacing:3px;margin:0}#state{margin-left:auto;font-size:12px;color:#bacaba}
+#messages{flex:1;min-height:0;overflow:hidden;padding:18px 22px;display:flex;flex-direction:column;justify-content:flex-end;gap:12px}.message{flex-shrink:0;padding:16px 20px;background:#10251c80;border:1px solid #c7d2b326;border-radius:6px 18px 18px 18px;animation:arrive .22s ease-out}.name{color:#e6c995;font-size:16px;margin-bottom:8px}.text{font-size:22px;line-height:1.55;overflow-wrap:anywhere;white-space:pre-wrap}.gift{border-color:#e6c99580;background:#66542b55}#empty{color:#aebbb0;text-align:center;margin:auto;font-size:20px}footer{padding:14px 24px;color:#aebbb0;font-size:12px;letter-spacing:3px;border-top:1px solid #e2e8ce26}
+@keyframes arrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.message{animation:none}}@media(min-width:1400px){h1{font-size:42px}.name{font-size:28px}.text{font-size:38px}header{padding:36px}#messages{gap:20px;padding:30px}.message{padding:24px 32px}footer,#state{font-size:20px}}
+</style></head><body><main><header><b>✳</b><h1>此刻 · 你们的声音</h1><span id="state" role="status">连接中</span></header><div id="messages" role="log" aria-live="polite"><p id="empty">等你说一句话</p></div><footer>助手 / 陪你度过这一刻</footer></main>
+<script>
+const list=document.getElementById('messages'),state=document.getElementById('state');
+function trim(){while(list.children.length>1&&(list.children.length>30||list.scrollHeight>list.clientHeight))list.firstElementChild.remove();}
+function add(item){
+ document.getElementById('empty')?.remove();
+ const row=document.createElement('div');row.className='message'+(item.kind==='gift'?' gift':'');
+ const name=document.createElement('div');name.className='name';name.textContent=(item.user||'观众')+(item.kind==='gift'?' · 心意送达':'');
+ const text=document.createElement('div');text.className='text';text.textContent=String(item.text||'').slice(0,500);
+ row.append(name,text);list.append(row);trim();
+}
+new ResizeObserver(trim).observe(list);
+function connect(){
+ const ws=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}/danmaku-ws`);
+ ws.onopen=()=>{state.textContent='展示已连接';};
+ ws.onmessage=event=>{const data=JSON.parse(event.data);if(data.type==='history'){if(data.items.length){list.replaceChildren();data.items.forEach(add);}}else if(data.type==='danmaku')add(data.item);};
+ ws.onclose=()=>{state.textContent='重连中…';setTimeout(connect,3000);};
+}
+connect();
+</script></body></html>
